@@ -12,5 +12,8 @@ namespace ChatBot.Models
         public List<string> Questions { get; set; } = new List<string>();
         public List<string> Answers { get; set; } = new List<string>();
         public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public int TabSwitchCount { get; set; }
+
+        public bool IsComplete { get; set; }
     }
 }

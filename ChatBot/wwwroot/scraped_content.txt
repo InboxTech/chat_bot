@@ -1,720 +1,453 @@
-=== JOB OPENINGS START ===
-1. SAP Consultant (Treasury & Fico)
-2. Business Development Manager (BDM)
-3. React.Js Developer
-4. Node.js Developer
-5. Business Development Executive (BDE)
-6. UI/UX Designer
-=== JOB OPENINGS END ===
+🔸 JOB OPENINGS:
+- Business Development Executive (BDE)
+- Business Development Manager (BDM)
+- Node.js Developer
+- React.Js Developer
+- SAP Consultant (Treasury & Fico)
 
-=== HTML CONTENT START ===
-<!DOCTYPE html>
-<html lang="en-US" dir="ltr">
-<meta http-equiv="content-type" content="text/html;charset=utf-8" />
+🔸 SERVICES:
+- We look forward to assisting you in taking your business to new heights.
+- Over 6 years of experience in helping clients finding comprehensive solutions.
+- Connect with top consultants hand-picked by Inbox Infotech for consulting and development.
+- Welcome to the 
+                        
+                        
+                            Inbox
+                            Infotech
+- Software Development Company Trusted By 550+ Businesses Globally
+- Get started today to conquer the bigger challenges of your business with our development services.
+                                Explore Inbox Infotech’s Development services to stay at par with the industry giants!
+- Our Services
+                    Our service offerings are aligned to the changing world of our customers. Our
+                        portfolio
+                        of services range from designing strategy to delivering impact.
+- Recruitment &amp; Staffing
+- Infrastructure Management
+- Data Centre Solutions
+- Take the right step, do the big things. 
+                    
+                        
+                            
+                                250
+                                Experts in Our Team
+- 500
+                                Happy Customers Worldwide
+- 10
+                                Years of
+                                    Experience
+- 550
+                                Projects Delivered Successfully
+- Take the right step,do the big things. -->
+                    
+                        
+                        250 
+                        Experts in Our Team
+- 500 
+                        Happy
+                          Customers
+                          Worldwide
+- 10 
+                        Years of
+                          Experience
+- 550 
+                        Projects Delivered
+                          Successfully
+- Our Industry Led Solutions
+- Tuno (AI Bot) 
+                                            AI voicebot for smart, scalable, cost-saving outbound calls.
+- HRTech 
+                                            Streamlining hiring, onboarding, performance, and employee engagement.
+- E-Commerce 
+                                            Boosting sales and streamlining operations across all channels.
+- Travel &amp; Hospitality 
+                                            Optimizing supply chain, tracking, and seamless delivery operations.
+- FinTech 
+                                            Transforming finance with secure, scalable, and user-friendly digital solutions.
+- HealthTech 
+                                            Empowering healthcare with digital tools for patient care and management.
+- PharmaIQ(ERP) 
+                                            Driving sustainability with renewable energy and eco-friendly technologies.
+- QuantRx(R&amp;D) 
+                                            Simplifies drug research and development with smart, compliant, and centralized tools.
+- Our Hiring Model 
+                     At Inbox Infotech, we understand the importance of
+                        collaboration in bringing your projects to life. That's why
+                        we offer a range of engagement options tailored to your
+                        needs. Choose from our proven models or propose your
+                        own—we're here to make your vision a reality, together.
+- Build Your Team 
+                                    Transform your business ideas into reality with our agile,
+                                        cross-functional teams—delivering seamless execution and excellence at every step of
+                                        the journey.
+- Dedicated Talent 
+                                     Empower your projects with expert, tailored solutions. Our dedicated
+                                        team ensures your software aligns seamlessly with your vision, goals, and business
+                                        needs.
+- On-Demand Talent 
+                                     Explore our On-Demand model—perfect for flexible, hourly expert
+                                        support. Get the guidance you need, exactly when you need it, short- or long-term.
+- Fixed Cost Projects
+                                     Control your budget with our fixed-cost model—ideal for
+                                        proofs-of-concept and unique ideas. Enjoy transparent pricing and innovate
+                                        confidently without financial stress.
+- Hire Your Own Remote
+                        Team 
+                     Build a high-performance tech team —
+                        without the hiring hassle.
+                    
+                     We help you build remote teams of top-tier
+                        professionals in high-demand tech domains. Whether
+                        you need niche consultants or entire project teams,
+                        we provide scalable, cost-effective talent solutions
+                        aligned to your business needs.
+- Salesforce  Developers
+- ServiceNow  Developers
+- MobileApp  Developers
+- Cyber Security  Experts
+- Would you like to speak
+                                    to
+                                    one of our advisers over the phone? Just submit your details and we’ll be in touch
+                                    shortly. You can also email us if you would prefer.
+- I would like to discuss:
+- Backend 
+                        
+                        
+                            Frontend 
+                        
+                        
+                             AI/ML 
+                        
+                        
+                             Database 
+                        
+                        
+                             Servers 
+                        
+                        
+                             DevOps 
+                        
+                        
+                             Monitoring 
+                        
 
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="robots" content="index,follow">
-
-        <meta name="robots" content="index,follow">
-        <meta name="description" content="The best Web Development Company in Vadodara, India for web development services, custom software development, web application development, android app development, web design, graphic design &amp;#038; more." />
-        <meta name="keywords" content="web development company,web design company,web application development,best web development company,web development company india,web development company vadodara" />
-        <link rel="canonical" href="https://inboxtechs.com" />
-
-        <meta name="googlebot" content="index,follow,max-snippet:-1,max-image-preview:large,max-video-preview:-1">
-        <meta name="bingbot" content="index,follow,max-snippet:-1,max-image-preview:large,max-video-preview:-1">
-        <link rel="alternate" type="application/rss+xml" href="sitemap.xml" />
-
-        <meta property="og:url" content="" />
-        <meta property="og:title" content="Web Development Company in India &#124; Website Development Services in" />
-        <meta property="og:description" content="The best Web Development Company in Vadodara, India for web development services, custom software development, web application development, android app development, web design, graphic design &#038;" />
-        <meta property="og:type" content="website" />
-        <meta property="og:site_name" content="Inbox Infotech" />
-        <meta property="og:locale" content="en_US" />
-
-        <meta property="twitter:url" content="" />
-        <meta property="twitter:title" content="Web Development Company in India &#124; Website Development Services in" />
-        <meta property="twitter:description" content="The best Web Development Company in Vadodara, India for web development services, custom software development, web application development, android app development, web design, graphic design &#038; more." />
-        <meta property="twitter:domain" content="Inbox Infotech" />
-        <meta property="twitter:card" content="summary_large_image" />
-        <meta property="twitter:creator" content="@twitter" />
-        <meta property="twitter:site" content="@twitter" />
-
-        <script type="application/ld+json">
-            {
-                "@context": "https://schema.org",
-                "@graph": [{
-                    "@type": "Organization",
-                    "@id": "https://inboxtechs.com#Organization",
-                    "url": "https://inboxtechs.com",
-                    "name": "Inbox Infotech",
-                    "sameAs": ["https://twitter.com/twitter"]
-                }, {
-                    "@type": "WebSite",
-                    "@id": "https://inboxtechs.com#website",
-                    "url": "https://inboxtechs.com",
-                    "name": "Web Development Company in India | Website Development Services in Vadodara",
-                    "headline": "The best Web Development Company in Vadodara, India for web development services, custom software development, web application development, android app development, web design, graphic design &amp; more.",
-                    "mainEntityOfPage": {
-                        "@type": "WebPage",
-                        "url": "https://inboxtechs.com"
-                    },
-                    "datePublished": "2019-06-29T16:35:21+00:00",
-                    "dateModified": "2022-09-08T12:46:04+00:00",
-                    "potentialAction": {
-                        "@type": "SearchAction",
-                        "target": "https://inboxtechs.com/?s={search_term_string}",
-                        "query-input": "required name=search_term_string"
-                    },
-                    "author": {
-                        "@type": "Person",
-                        "@id": "https://inboxtechs.com/author/inbox_admin/#person",
-                        "url": "https://inboxtechs.com/author/inbox_admin/",
-                        "name": "inbox-admin"
-                    },
-                    "publisher": {
-                        "@type": "Organization",
-                        "@id": "https://inboxtechs.com#Organization",
-                        "url": "https://inboxtechs.com",
-                        "name": "Inbox Infotech",
-                        "sameAs": ["https://twitter.com/twitter"]
-                    },
-                    "keywords": "web development company,web design company,web application development,best web development company,web development company india,web development company vadodara"
-                }]
-            }
-
-        </script>
-
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-        <meta name="keyword" content="Best IT company in Vadodara / Baroda, App development, web development, Android/ios app developer, IT consulting firms, IoT, Artificial Intelligence, Machine Learning" />
-
-        <meta name="google-site-verification" content="OVH3g58FzaA1CVsuWB9NEGbovrO15CHP8U2r83cW1hQ" />
-        <link rel="profile" href="">
-
-        <!-- ===============================================-->
-        <!--    Document Title-->
-        <!-- ===============================================-->
-        <title>Career Opportunities at Inbox Infotech Pvt Ltd</title>
-
-        <!-- ===============================================-->
-        <!--    Favicons-->
-        <!-- ===============================================-->
-        <link rel="apple-touch-icon" sizes="180x180" href="https://www.inboxtechs.com/public/favicon-1.png.png">
-        <link rel="icon" type="image/png" sizes="32x32" href="https://www.inboxtechs.com/public/favicon-1.png">
-        <link rel="icon" type="image/png" sizes="16x16" href="https://www.inboxtechs.com/public/favicon-1.png">
-        <link rel="shortcut icon" type="image/x-icon" href="https://www.inboxtechs.com/public/favicon-1.png">
-        <link rel="manifest" href="https://www.inboxtechs.com/public/favicon-1.png">
-        <meta name="msapplication-TileImage" content="https://www.inboxtechs.com/public/favicon-1.png">
-        <meta name="theme-color" content="#ffffff">
-        <script src="https://www.inboxtechs.com/public/vendors/overlayscrollbars/OverlayScrollbars.min.js"></script>
-
-        <!-- ===============================================-->
-        <!--    Stylesheets-->
-        <!-- ===============================================-->
-        <link href="https://www.inboxtechs.com/public/vendors/swiper/swiper-bundle.min.css" rel="stylesheet">
-        <link href="https://www.inboxtechs.com/public/vendors/hamburgers/hamburgers.min.css" rel="stylesheet">
-        <link href="https://www.inboxtechs.com/public/vendors/loaders.css/loaders.min.css" rel="stylesheet">
-        <link href="https://www.inboxtechs.com/public/assets/css/theme.min.css" rel="stylesheet" />
-        <link href="https://www.inboxtechs.com/public/assets/css/user.min.css" rel="stylesheet" />
-        <link href="https://www.inboxtechs.com/public/assets/css/aos.css" rel="stylesheet" />
-
-        <link rel="preconnect" href="https://fonts.googleapis.com/">
-        <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
-
-        <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&amp;family=sans+serif:wght@300;400;600;700;800&amp;display=swap" rel="stylesheet">
-
-        <!-- Google tag (gtag.js) -->
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-6QZQHT5PRT"></script>
-        <script>
-            window.dataLayer = window.dataLayer || [];
-
-            function gtag() {
-                dataLayer.push(arguments);
-            }
-            gtag('js', new Date());
-            gtag('config', 'G-6QZQHT5PRT');
-        </script>
-
-        <!-- Google Tag Manager -->
-        <script>
-            (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-            new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-            j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-            'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-            })(window,document,'script','dataLayer','GTM-W35PSKXV');
-        </script>
-        <!-- End Google Tag Manager -->
-
-    </head>
-
-    <body>
-        <!-- Google Tag Manager (noscript) -->
-        <noscript>
-            <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-W35PSKXV" height="0" width="0" style="display:none;visibility:hidden"></iframe>
-        </noscript>
-        <!-- End Google Tag Manager (noscript) -->
-
-        <div class="bg-primary py-3 d-none d-sm-block text-white fw-bold ">
-  <div class="container d-none">
-    <div class="row align-items-center gx-4">
-      <div class="col-auto d-none d-lg-block fs--1"><span class="fas fa-map-marker-alt text-warning me-2" data-fa-transform="grow-3"></span>402- A B C, C Square Building Sarabhai Campus,Vadodara, Gujarat</div>
-      <div class="col-auto ms-md-auto order-md-2 d-none d-sm-flex fs--1 align-items-center"><span class="far fa-envelope text-warning me-2" data-fa-transform="grow-3"></span>support@inboxtechs.com</div>
-      <div class="col-auto"><span class="fas fa-phone-alt text-warning" data-fa-transform="shrink-3"></span><a class="ms-2 fs--1 d-inline text-white fw-bold" href="tel:0265-2371137">0265-2371137</a></div>
-      <div class="col-auto"><span class="fas fa-phone-alt text-warning" data-fa-transform="shrink-3"></span><a class="ms-2 fs--1 d-inline text-white fw-bold" href="tel:+1-408-641-3739">+1-408-641-3739</a></div>
-    </div>
-  </div>
-</div>
-<div class="sticky-top navbar-elixir">
-  <div class="container">
-    <nav class="navbar navbar-expand-lg" style="padding-top: 0px; padding-bottom: 0px;">
-      <a class="navbar-brand" href="https://inboxtechs.com"><img src="https://www.inboxtechs.com/public/inbox-logo.png" alt="logo" height="50px"/></a><button class="navbar-toggler p-0" type="button" data-bs-toggle="collapse" data-bs-target="#primaryNavbarCollapse" aria-controls="primaryNavbarCollapse" aria-expanded="false" aria-label="Toggle navigation"><span class="hamburger hamburger--emphatic"><span class="hamburger-box"><span class="hamburger-inner"></span></span></span></button>
-      <!-- <div class="collapse navbar-collapse" id="primaryNavbarCollapse">
-		  </div> -->
-      <div class="collapse navbar-collapse" id="primaryNavbarCollapse">
-        <ul class="navbar-nav py-3 py-lg-0 mt-1 mb-2 my-lg-0 ms-lg-n1">
-          <li class="nav-item dropdown"><a class="nav-link" href="https://inboxtechs.com" role="button">Home</a></li>
-          <li class="nav-item dropdown"><a class="nav-link" href="https://inboxtechs.com/about-us" role="button">About Us</a></li>
-          <li class="nav-item dropdown"><a class="nav-link dropdown-toggle dropdown-indicator" href="JavaScript:void(0)" role="button" data-bs-toggle="dropdown" aria-expanded="false">Services</a>
-            <ul class="dropdown-menu">
-				      
-                                                      <li><a class="dropdown-item" href="https://inboxtechs.com/services/software-development">Software Development</a></li>
-                                                                        <li><a class="dropdown-item" href="https://inboxtechs.com/services/app-development">Mobile Applications</a></li>
-                                                                        <li><a class="dropdown-item" href="https://inboxtechs.com/services/ai-ml-development">AI/ML</a></li>
-                                                                        <li><a class="dropdown-item" href="https://inboxtechs.com/services/recruitment_staffing" role="button">Recruitment &amp; Staffing</a></li>
-                                                                        <li><a class="dropdown-item" href="https://inboxtechs.com/services/infrastructure-management">Infrastructure Management</a></li>
-                                                                        <li><a class="dropdown-item" href="https://inboxtechs.com/services/cloud">Cloud Services</a></li>
-                                                                        <li><a class="dropdown-item" href="https://inboxtechs.com/services/iot">IOT</a></li>
-                                                                        <li><a class="dropdown-item" href="https://inboxtechs.com/services/cyber-security">Cyber Security</a></li>
-                                                                        <li><a class="dropdown-item" href="https://inboxtechs.com/services/data-center-solutions">Data Centre Solutions</a></li>
-                                              </ul>
-          </li>
-			    <li class="nav-item dropdown"><a class="nav-link dropdown-toggle dropdown-indicator" href="JavaScript:void(0)" role="button" data-bs-toggle="dropdown" aria-expanded="false">Products</a>
-            <ul class="dropdown-menu">
-                                                      <li><a class="dropdown-item" href="https://inboxtechs.com/products/tuno" role="button"> Tuno (AI Bot) </a></li>
-                                                                        <li><a class="dropdown-item" href="https://inboxtechs.com/products/hrtech">HRTech</a></li>
-                                                                        <li><a class="dropdown-item" href="https://inboxtechs.com/products/e-commerce">E-Commerce</a></li>
-                                                                        <li><a class="dropdown-item" href="https://inboxtechs.com/products/travel-hospitality">Travel &amp; Hospitality</a></li>
-                                                                        <li><a class="dropdown-item" href="https://inboxtechs.com/products/fintech">FinTech</a></li>
-                                                                        <li><a class="dropdown-item" href="https://inboxtechs.com/products/healthtech">HealthTech</a></li>
-                                                                        <li><a class="dropdown-item" href="https://inboxtechs.com/products/pharma-iq-erp">PharmaIQ(ERP)</a></li>
-                                                                        <li><a class="dropdown-item" href="https://inboxtechs.com/products/quantrx-r&amp;d">QuantRx(R&amp;D)</a></li>
-                                              </ul>
-          </li>
-          <li class="nav-item dropdown"><a class="nav-link dropdown-toggle dropdown-indicator" href="JavaScript:void(0)" role="button" data-bs-toggle="dropdown" aria-expanded="false">Industries</a>
-            <ul class="dropdown-menu">
+                        
+                            API 
+                        
+                        
+                             Analytics
+- Industries Recognition
+- If you have
+                            any query
+                            related development we are available 24/7
+- WHAT CLIENT SAYS ABOUT US
+                    Our Testimonials
+- Filippo Fuggitti
+                                            Bloomberg LP
+- A very big congratulations to the team at Inbox Infotech for doing such a great job. The professionals have put together a wonderful website that has been integrated with the right graphics and web designing solutions. My website is extremely user-friendly and the visitors love it.
+- Ashwini Kumar
+                                            Indian Army
+- Meir Razzon
+                                            Hostel Pass
+- I am really impressed with the quality of services that have been received from Inbox Infotech. The services were right on schedule with professional reasonable prices and courteous in dealings. The services were delivered right on time. I have received an e-commerce website for the products I offer. My revenue has increased since my new website and I will definitely use the services again.
+- <span
+                        class="text-primary fw-semi-bold">Submit
+- -->
+          
+            Important Links
+            
+              About Us
+              All Services
+              All Products
+              All Industries 
               
-                              <li><a class="dropdown-item" href="https://inboxtechs.com/industries/Oil-and-Gas">Oil and Gas</a></li>
-				                      <li><a class="dropdown-item" href="https://inboxtechs.com/industries/Retail-and-Consumer-Goods">Retail and Consumer Goods</a></li>
-				                      <li><a class="dropdown-item" href="https://inboxtechs.com/industries/communications-and-media">Communications &amp; Media</a></li>
-				                      <li><a class="dropdown-item" href="https://inboxtechs.com/industries/manufacturing">Manufacturing</a></li>
-				                      <li><a class="dropdown-item" href="https://inboxtechs.com/industries/Defense-and-Aerospace">Defense &amp; Aerospace</a></li>
-				                      <li><a class="dropdown-item" href="https://inboxtechs.com/industries/pharmaceuticals">Pharmaceuticals</a></li>
-				                      <li><a class="dropdown-item" href="https://inboxtechs.com/industries/Automotive">Automotive</a></li>
-				                      <li><a class="dropdown-item" href="https://inboxtechs.com/industries/Financial-Services">Financial Services</a></li>
-				                      <li><a class="dropdown-item" href="https://inboxtechs.com/industries/Healthcare">Healthcare</a></li>
-				                      <li><a class="dropdown-item" href="https://inboxtechs.com/industries/FMCG">Fast Moving Consumer Goods</a></li>
-				                      <li><a class="dropdown-item" href="https://inboxtechs.com/industries/Transport-and-Logistics">Transport &amp; Logistics</a></li>
-				                      <li><a class="dropdown-item" href="https://inboxtechs.com/industries/Public-Sector">Public Sector</a></li>
-				                      <li><a class="dropdown-item" href="https://inboxtechs.com/industries/Public-Transport">Public Transport</a></li>
-				                      <li><a class="dropdown-item" href="https://inboxtechs.com/industries/Technology">Technology</a></li>
-				                  </ul>
-          </li>
-          <li class="nav-item dropdown"><a class="nav-link" href="https://inboxtechs.com/careers" role="button">Careers</a></li>
-          <li class="nav-item dropdown"><a class="nav-link" href="https://inboxtechs.com/blog" role="button">Blog</a></li>
-          <li class="nav-item dropdown"><a class="nav-link" href="https://inboxtechs.com/contact-us" role="button">Contact Us</a></li>
-        </ul>
-      </div>
-    </nav>
-  </div>
-</div>
-        <!-- ===============================================-->
-        <!--    Main Content-->
-        <!-- ===============================================-->
-          <section>
-    <div class="bg-holder overlay" style="background-image:url(https://inboxtechs.com/assets/img/background-2.jpg);background-position:center bottom;"></div>
-    <!--/.bg-holder-->
-    <div class="container">
-      <div class="row pt-6" data-inertia='{"weight":1.5}'>
-        <div class="col-md-8 text-color" data-zanim-timeline="{}" data-zanim-trigger="scroll">
-          <div class="overflow-hidden">
-            <h1 class="text-color fs-4 fs-md-5 mb-0 lh-1" data-zanim-xs='{"delay":0}'>Careers</h1>
-            <div class="nav" aria-label="breadcrumb" role="navigation" data-zanim-xs='{"delay":0.1}'>
-              <ol class="breadcrumb fs-1 ps-0 fw-bold">
-                <li class="breadcrumb-item"><a class="text-color" href="https://inboxtechs.com">Home</a></li>
-                <li class="breadcrumb-item text-color active" aria-current="page">Careers</li>
-              </ol>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div><!-- end of .container-->
-  </section>
-  <main class="main" id="top">
-    <div class="preloader" id="preloader">
-      <div class="loader">
-        <div class="line-scale">
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
-        </div>
-      </div>
-    </div>
-    <!-- <section> close ============================-->
-    <!-- ============================================-->
-    <!-- <section> begin ============================-->
-    
-    <!-- <section> close ============================-->
-    <!-- ============================================-->
-		<section class="">
-      <h2 class="text-color fs-2 fs-md-3 my-5 text-center">Current Openings</h2>
-      <div class="container">
-        <div class="row g-4">
-                              
-            <div class="col-md-6 col-lg-4">
-              <div class="card shadow" style="height: 100%">
-                
-                <div class="card-body pb-0" data-zanim-timeline="{}" data-zanim-trigger="scroll">
-                  <div class="overflow-hidden">
-                    <h5 class="text-color mb-4" data-zanim-xs='{"delay":0}'>SAP Consultant (Treasury &amp; Fico)</h5>
-                  </div>
-                  <div class="overflow-hidden">
-                    <p class="mt-" data-zanim-xs='{"delay":0.2}'>SAP Treasury (TRM), SAP FICO (Financial Accounting &amp; Controlling), Indian GST processes, SAP Cash Management, Liquidity Management, Bank Account Management, Risk Management, SAP S/4HANA, Problem-solving</p>
-                  </div>
-                  <div class="overflow-hidden">
-                    <p class="mt-2" data-zanim-xs='{"delay":0.2}'> Last Date to Apply : 2025-05-15</p>
-                  </div>
-                  <div class="overflow-hidden">
-                    <p class="mt-2" data-zanim-xs='{"delay":0.2}'> Experience : 10+ years</p>
-                </div>
-                </div>
-                <div class="overflow-hidden card-footer pt-2" style="padding: 1.8rem ">
-                  <div class="d-inline-block" data-zanim-xs='{"delay":0.3}'>
-                    <a class="d-flex align-items-center" href="https://inboxtechs.com/careers/SAP_Consultant_(Treasury_&amp;_Fico)/13">Apply Now
-                          <div class="overflow-hidden ms-2" data-zanim-xs='{"from":{"opacity":0,"x":-30},"to":{"opacity":1,"x":0},"delay":0.8}'>
-                              <span class="d-inline-block fw-medium">&xrarr;</span>
-                          </div>
-                      </a>
-                  </div>
-                </div>
-              </div>
-            </div>
-                              
-            <div class="col-md-6 col-lg-4">
-              <div class="card shadow" style="height: 100%">
-                
-                <div class="card-body pb-0" data-zanim-timeline="{}" data-zanim-trigger="scroll">
-                  <div class="overflow-hidden">
-                    <h5 class="text-color mb-4" data-zanim-xs='{"delay":0}'>Buisness Development Manager (BDM)</h5>
-                  </div>
-                  <div class="overflow-hidden">
-                    <p class="mt-" data-zanim-xs='{"delay":0.2}'>Industry Knowledge, Sales Expertise, Communication Skills,  Negotiation Skills, Strategic Thinking, Technical Aptitude</p>
-                  </div>
-                  <div class="overflow-hidden">
-                    <p class="mt-2" data-zanim-xs='{"delay":0.2}'> Last Date to Apply : 2025-04-30</p>
-                  </div>
-                  <div class="overflow-hidden">
-                    <p class="mt-2" data-zanim-xs='{"delay":0.2}'> Experience : 6 to 8 Years</p>
-                </div>
-                </div>
-                <div class="overflow-hidden card-footer pt-2" style="padding: 1.8rem ">
-                  <div class="d-inline-block" data-zanim-xs='{"delay":0.3}'>
-                    <a class="d-flex align-items-center" href="https://inboxtechs.com/careers/Buisness_Development_Manager_(BDM)/12">Apply Now
-                          <div class="overflow-hidden ms-2" data-zanim-xs='{"from":{"opacity":0,"x":-30},"to":{"opacity":1,"x":0},"delay":0.8}'>
-                              <span class="d-inline-block fw-medium">&xrarr;</span>
-                          </div>
-                      </a>
-                  </div>
-                </div>
-              </div>
-            </div>
-                              
-            <div class="col-md-6 col-lg-4">
-              <div class="card shadow" style="height: 100%">
-                
-                <div class="card-body pb-0" data-zanim-timeline="{}" data-zanim-trigger="scroll">
-                  <div class="overflow-hidden">
-                    <h5 class="text-color mb-4" data-zanim-xs='{"delay":0}'>React.Js Developer</h5>
-                  </div>
-                  <div class="overflow-hidden">
-                    <p class="mt-" data-zanim-xs='{"delay":0.2}'>React.js, Redux, Context API, JavaScript (ES6+), HTML5, CSS3, Responsive Design, Git</p>
-                  </div>
-                  <div class="overflow-hidden">
-                    <p class="mt-2" data-zanim-xs='{"delay":0.2}'> Last Date to Apply : 2025-05-31</p>
-                  </div>
-                  <div class="overflow-hidden">
-                    <p class="mt-2" data-zanim-xs='{"delay":0.2}'> Experience : 3 to 5 years</p>
-                </div>
-                </div>
-                <div class="overflow-hidden card-footer pt-2" style="padding: 1.8rem ">
-                  <div class="d-inline-block" data-zanim-xs='{"delay":0.3}'>
-                    <a class="d-flex align-items-center" href="https://inboxtechs.com/careers/React.Js_Developer/11">Apply Now
-                          <div class="overflow-hidden ms-2" data-zanim-xs='{"from":{"opacity":0,"x":-30},"to":{"opacity":1,"x":0},"delay":0.8}'>
-                              <span class="d-inline-block fw-medium">&xrarr;</span>
-                          </div>
-                      </a>
-                  </div>
-                </div>
-              </div>
-            </div>
-                              
-            <div class="col-md-6 col-lg-4">
-              <div class="card shadow" style="height: 100%">
-                
-                <div class="card-body pb-0" data-zanim-timeline="{}" data-zanim-trigger="scroll">
-                  <div class="overflow-hidden">
-                    <h5 class="text-color mb-4" data-zanim-xs='{"delay":0}'>Node.js Developer</h5>
-                  </div>
-                  <div class="overflow-hidden">
-                    <p class="mt-" data-zanim-xs='{"delay":0.2}'>Node.js, Express.js, RESTful API, Git, JWT, OAuth, AWS, Azure, GC, MongoDB, MySQL, PostgreSQL</p>
-                  </div>
-                  <div class="overflow-hidden">
-                    <p class="mt-2" data-zanim-xs='{"delay":0.2}'> Last Date to Apply : 2025-05-31</p>
-                  </div>
-                  <div class="overflow-hidden">
-                    <p class="mt-2" data-zanim-xs='{"delay":0.2}'> Experience : 4 to 6 Years</p>
-                </div>
-                </div>
-                <div class="overflow-hidden card-footer pt-2" style="padding: 1.8rem ">
-                  <div class="d-inline-block" data-zanim-xs='{"delay":0.3}'>
-                    <a class="d-flex align-items-center" href="https://inboxtechs.com/careers/Node.js_Developer/10">Apply Now
-                          <div class="overflow-hidden ms-2" data-zanim-xs='{"from":{"opacity":0,"x":-30},"to":{"opacity":1,"x":0},"delay":0.8}'>
-                              <span class="d-inline-block fw-medium">&xrarr;</span>
-                          </div>
-                      </a>
-                  </div>
-                </div>
-              </div>
-            </div>
-                              
-            <div class="col-md-6 col-lg-4">
-              <div class="card shadow" style="height: 100%">
-                
-                <div class="card-body pb-0" data-zanim-timeline="{}" data-zanim-trigger="scroll">
-                  <div class="overflow-hidden">
-                    <h5 class="text-color mb-4" data-zanim-xs='{"delay":0}'>Business Development Executive (BDE)</h5>
-                  </div>
-                  <div class="overflow-hidden">
-                    <p class="mt-" data-zanim-xs='{"delay":0.2}'>Industry Knowledge, Sales Expertise, Communication Skills, Negotiation Skills, Strategic Thinking, Technical Aptitude</p>
-                  </div>
-                  <div class="overflow-hidden">
-                    <p class="mt-2" data-zanim-xs='{"delay":0.2}'> Last Date to Apply : 2025-05-31</p>
-                  </div>
-                  <div class="overflow-hidden">
-                    <p class="mt-2" data-zanim-xs='{"delay":0.2}'> Experience : 2 to 4 years</p>
-                </div>
-                </div>
-                <div class="overflow-hidden card-footer pt-2" style="padding: 1.8rem ">
-                  <div class="d-inline-block" data-zanim-xs='{"delay":0.3}'>
-                    <a class="d-flex align-items-center" href="https://inboxtechs.com/careers/Business_Development_Executive_(BDE)/9">Apply Now
-                          <div class="overflow-hidden ms-2" data-zanim-xs='{"from":{"opacity":0,"x":-30},"to":{"opacity":1,"x":0},"delay":0.8}'>
-                              <span class="d-inline-block fw-medium">&xrarr;</span>
-                          </div>
-                      </a>
-                  </div>
-                </div>
-              </div>
-            </div>
-                              
-            <div class="col-md-6 col-lg-4">
-              <div class="card shadow" style="height: 100%">
-                
-                <div class="card-body pb-0" data-zanim-timeline="{}" data-zanim-trigger="scroll">
-                  <div class="overflow-hidden">
-                    <h5 class="text-color mb-4" data-zanim-xs='{"delay":0}'>UI/UX Designer</h5>
-                  </div>
-                  <div class="overflow-hidden">
-                    <p class="mt-" data-zanim-xs='{"delay":0.2}'>Figma, Adobe XD, Sketch, Photoshop, Prototype, Wireframe</p>
-                  </div>
-                  <div class="overflow-hidden">
-                    <p class="mt-2" data-zanim-xs='{"delay":0.2}'> Last Date to Apply : 2025-05-31</p>
-                  </div>
-                  <div class="overflow-hidden">
-                    <p class="mt-2" data-zanim-xs='{"delay":0.2}'> Experience : 2 to 4 years</p>
-                </div>
-                </div>
-                <div class="overflow-hidden card-footer pt-2" style="padding: 1.8rem ">
-                  <div class="d-inline-block" data-zanim-xs='{"delay":0.3}'>
-                    <a class="d-flex align-items-center" href="https://inboxtechs.com/careers/UI_UX_Designer/8">Apply Now
-                          <div class="overflow-hidden ms-2" data-zanim-xs='{"from":{"opacity":0,"x":-30},"to":{"opacity":1,"x":0},"delay":0.8}'>
-                              <span class="d-inline-block fw-medium">&xrarr;</span>
-                          </div>
-                      </a>
-                  </div>
-                </div>
-              </div>
-            </div>
-                  </div>
-      </div>
-    </section>
-  </main>
-        <!-- ===============================================-->
-
-        <!--===============================================-->
-        <!--    Footer-->
-        <!--===============================================-->
-
-        <!-- ============================================-->
-        <!-- <section> begin ============================-->
-        <!-- ============================================-->
-                <!-- ============================================-->
-<footer>
-  <section class="bg-primary">
-    <div class="container">
-      <div class="row" style="padding: 4% 0 2% 0;" >
-        <!-- <div class="col-lg-4">
-          <div class="bg-primary text-white p-5 p-lg-6 rounded-3">
+              Careers
+               Blog
+              Contact Us
+- Services 
+          
+                    
+           Software Development
+        
               
-            <script>
-              var msg = '';
-              var exist = '';
-              if (exist) {
-                alert(msg);
-              }
-            </script>
-            <h6 class="text-white fs-1 fs-lg-2 mb-1" style="font-size: 1.776889rem">Sign up for email alerts</h6>
-            <p class="text-white">Stay current with our latest insights</p>
-            <form class="mt-4" method="post" action="https://inboxtechs.com/emailsubscriber">
-              <input type="hidden" name="_token" value="tiM8waiAtl8pn4VpXbE2f028ceYm1L0J0lZE2E7d">              <div class="row align-items-center">
-                <div class="col-md-7 pe-md-0">
-                  <div class="input-group"><input class="form-control" type="email" name="email"
-                      placeholder="Enter Email Here" required></div>
-                </div>
-                <div class="col-md-5 mt-3 mt-md-0">
-                  <div class="d-grid"><button class="btn btn-warning" type="submit"><span
-                        class="text-primary fw-semi-bold">Submit</span></button></div>
-                </div>
-              </div>
-            </form>
-          </div>
-        </div> -->
+           Mobile Applications
+        
+              
+           AI/ML
+        
+              
+           Recruitment &amp; Staffing
+        
+              
+           Infrastructure Management
+        
+              
+           Cloud Services
+        
+              
+           IOT
+        
+              
+           Cyber Security
+        
+              
+           Data Centre Solutions
+- Headquarters 
+          
+            
+              
+                     India:   Inbox Infotech Pvt Ltd, 615- Supremus Vihav Building,
+                  Vadodara, Gujarat, India 390021 
+              
+            
+            
+              
+                   USA:   Inbox Infotech Pvt Ltd, 1150 E Yorba Linda Blvd, Placentia,
+                  CA 92870, United States 
+              
+            
+            
+              
+                   Dubai:    INBOX INFOTECH FZ-LLC, RAKEZ - Ras al Khaimah, Dubai
+- 👋 Hi there, How can we help?
 
 
-        <div class="col-lg-3 ">
-          <!-- <div class="row"> -->
-          <div style="height: 100%;">
-            <h5 class="text-white mb-4">Important Links</h5>
-            <ul class="list-unstyled">
-              <li class="my-2"><a class="text-white" href="https://inboxtechs.com/about-us" role="button">About Us</a></li>
-              <li class="my-2"><a class="text-white" href="https://inboxtechs.com/services" role="button">All Services</a></li>
-              <li class="my-2"><a class="text-white" href="https://inboxtechs.com/products" role="button">All Products</a></li>
-              <li class=""><a class="text-white" href="https://inboxtechs.com/industries" role="button">All Industries </a>
-              </li>
-              <li class="my-2"><a class="text-white" href="https://inboxtechs.com/careers" role="button">Careers</a></li>
-              <li class="my-2"><a class="text-white" href="https://inboxtechs.com/blog" role="button"> Blog</a></li>
-              <li class="my-2"><a class="text-white" href="https://inboxtechs.com/contact-us" role="button">Contact Us</a></li>
-            </ul>
-          </div>
-        </div>
-        <div class="col-lg-3">
-          <h5 class="text-white mb-4"> Services </h5>
-          <ul class="list-unstyled">
-                    <li class="my-2">
-          <a href="https://inboxtechs.com/services/software-development" class="text-white"> Software Development</a>
-        </li>
-              <li class="my-2">
-          <a href="https://inboxtechs.com/services/app-development" class="text-white"> Mobile Applications</a>
-        </li>
-              <li class="my-2">
-          <a href="https://inboxtechs.com/services/ai-ml-development" class="text-white"> AI/ML</a>
-        </li>
-              <li class="my-2">
-          <a href="https://inboxtechs.com/services/recruitment staffing" class="text-white"> Recruitment &amp; Staffing</a>
-        </li>
-              <li class="my-2">
-          <a href="https://inboxtechs.com/services/infrastructure-management" class="text-white"> Infrastructure Management</a>
-        </li>
-              <li class="my-2">
-          <a href="https://inboxtechs.com/services/cloud" class="text-white"> Cloud Services</a>
-        </li>
-              <li class="my-2">
-          <a href="https://inboxtechs.com/services/iot" class="text-white"> IOT</a>
-        </li>
-              <li class="my-2">
-          <a href="https://inboxtechs.com/services/cyber-security" class="text-white"> Cyber Security</a>
-        </li>
-              <li class="my-2">
-          <a href="https://inboxtechs.com/services/data-center-solutions" class="text-white"> Data Centre Solutions</a>
-        </li>
-                </ul>
-        </div>
-        <div class="col-lg-3">
-          <h5 class="text-white mb-4"> Headquarters </h5>
-          <ul class="list-unstyled">
-            <li class="">
-              <a class="text-white"
-                href="https://www.google.com/maps?q=615+Supremus+Vihav+Building,+Vadodara,+Gujarat,+India+390021"
-                target="_blank">
-                <p>  <strong>   India: </strong> <br> Inbox Infotech Pvt Ltd, 615- Supremus Vihav Building,
-                  Vadodara, Gujarat, India 390021 </p>
-              </a>
-            </li>
-            <li class="">
-              <a class="text-white"
-                href="https://www.google.com/maps?q=1150+E+Yorba+Linda+Blvd,+Placentia,+CA+92870,+United+States"
-                target="_blank">
-                <p> <strong>  USA: </strong> <br> Inbox Infotech Pvt Ltd, 1150 E Yorba Linda Blvd, Placentia,
-                  CA 92870, United States </p>
-              </a>
-            </li>
-            <li class="">
-              <a class="text-white" href="https://www.google.com/maps?q=RAKEZ,+Ras+al+Khaimah,+Dubai,+UAE"
-                target="_blank">
-                <p> <strong>  Dubai: </strong>  <br> INBOX INFOTECH FZ-LLC, RAKEZ - Ras al Khaimah, Dubai </p>
-              </a>
-            </li>
-          </ul>
-        </div>
-        <!-- <div class="col-lg-3">
-          <div style="height: 100%;">
-            <h6 class="text-white" style="font-size: 1.333rem;letter-spacing: -0.05rem;">Social Links</h6>
-              <ul class="list-unstyled">
-                <li class="mb-3">
-                  <a class="text-decoration-none d-flex align-items-center"
-                    href="https://www.linkedin.com/in/inbox-infotech/"> <span class="brand-icon me-3"><span
-                        class="fab fa-linkedin-in"></span></span>
-                    <h6 class="fs-0 text-white mb-0 d-inline-block" style="font-size: 1.333rem;letter-spacing: -0.05rem;">
-                      Linkedin</h6>
-                  </a></li>
-                <li class="mb-3">
-                  <a class="text-decoration-none d-flex align-items-center"
-                    href="https://twitter.com/Inbox_Infotech"> <span class="brand-icon me-3"><span
-                        class="fab fa-twitter"></span></span>
-                    <h6 class="fs-0 text-white mb-0 d-inline-block" style="font-size: 1.333rem;letter-spacing: -0.05rem;">
-                      Twitter</h6>
-                  </a></li>
-                <li class="mb-3">
-                  <a class="text-decoration-none d-flex align-items-center"
-                    href="https://www.facebook.com/InboxInfotech/"> <span class="brand-icon me-3"><span
-                        class="fab fa-facebook-f"></span></span>
-                    <h6 class="fs-0 text-white mb-0 d-inline-block" style="font-size: 1.333rem;letter-spacing: -0.05rem;">
-                      Facebook</h6>
-                  </a></li>
-  
-              </ul>
-          </div>
-        </div> -->
-        <div class="col-lg-3 px                                                                                                                                                                                       -lg-5" >
-          <h5 class="text-white mb-4"> Contact Us </h5>
-          <ul class="list-unstyled">
-            <li class="mb-3">
-              <a class="text-white" href="tel:+91 9662398895"><i class="fas fa-phone text-white"></i> +91 9662398895
-              </a>
-            </li>
-            <li class="mb-3">
-              <a class="text-white" href="mailto:info@Inbox-infotech.com">
-                <i class="fas fa-envelope text-white "></i> info@Inbox-infotech.com
-              </a>
-            </li>
-            <li class="mb-3">
-              <a class="text-white" href="mailto:hr@Inbox-infotech.com">
-                <i class="fas fa-envelope text-white "></i> hr@Inbox-infotech.com
-              </a>
-            </li>
-            <li class="mb-3">
-              <div class="d-flex align-items-center">
-                <a class="text-decoration-none d-flex align-items-center"
-                  href="https://www.linkedin.com/in/inbox-infotech/">
-                  <i class="fab fa-linkedin-in text-white mx-2" style="font-size: 25px;"></i>
-                </a>
-                <a class="text-decoration-none d-flex align-items-center" href="https://twitter.com/Inbox_Infotech">
-                  <i class="fab fa-twitter text-white mx-2" style="font-size: 25px;"></i>
-                </a>
-                <a class="text-decoration-none d-flex align-items-center"
-                  href="https://www.facebook.com/InboxInfotech/">
-                  <i class="fab fa-facebook-f text-white mx-2" style="font-size: 25px;"></i>
-                </a>
-
-              </div>
-            </li>
-          </ul>
-        </div>
-        <!-- <div class="row"> -->
-
-        <!-- </div> -->
-
-      </div>
-      <!-- </div> -->
-      <div class="row align-items-center opacity-85 text-white mb-3">
-        <div class="col-lg-6 text-sm-start"><a href="https://inboxtechs.com"><img src="https://www.inboxtechs.com/public/logo.png" alt="logo" /></a>
-        </div>
-        <div class="col-lg-6 mt-3 mt-sm-0 text-lg-end">
-          <p class="lh-lg mb-0" style="font-weight: 500;">&copy; All Rights Reserved 2025 Inbox Infotech Pvt Ltd
-          </p>
-        </div>
-      </div>
-    </div>
-    </div>
+🔸 ABOUT:
+- Company Overview
+                        Discover Inbox
+- Extending a helping hand for the future
+                                Inbox Infotech, the pioneer in offering IT solutions combines business intelligence along with experience to incorporate new innovative changes and deliver constructive results. 
+Promising to offer agile, innovative, and competitive services for custom application and software development, Inbox Infotech seeks to be your one-stop solution for software development.
+We are proud to be the holders of eminent industry awards that reflect our past contributions and excellence throughout the field.
+- Mission Vision &amp; Values
+- Our Mission 
+                                             At Inbox Infotech, we envision a
+                                                world where technology goes beyond
+                                                existence to enrich lives and foster
+                                                community connections. We are
+                                                passionate about creating solutions that
+                                                simplify everyday tasks, spark creativity,
+                                                and empower businesses to thrive. Each
+                                                innovation is driven by our deep
+                                                commitment to building a brighter, more
+                                                inclusive future.
+- Our Vision 
+                                             At the core of our vision is a future where
+                                                technology makes life better and brings
+                                                people closer together. We are dedicated to developing solutions that
+                                                simplify daily
+                                                tasks, ignite creativity, and enable businesses to flourish. Each innovation
+                                                we create
+                                                is fueled by our commitment to building a brighter, more inclusive future
+                                                for everyone.
+- Our Values 
+                                             We are a cohesive team that values dedication and
+                                                excellence in every project
+                                                we take on. Our commitment to delivering exceptional software development
+                                                solutions is guided by our core values, which define our positive impact in
+                                                the
+                                                offshore software development landscape.
+- Empowering businesses with advanced
+                                        websites and
+                                        apps that redefine digital experiences and craft your
+                                        digital future, we offer a full suite of services for digital
+                                        transformation. From mobile app and web development
+                                        to CRM &amp; ERP solutions and cloud services, we keep
+                                        your business ahead. Our UI/UX/CX design ensures
+                                        seamless user experiences, while rigorous QA and
+                                        testing guarantee top-quality performance. Additionally,
+                                        our digital marketing strategies drive growth and
+                                        expertise in API &amp; integrations ensures seamless
+                                        connectivity.
+- Mobile App  Development
+- Recruitment &amp;  Staffing
+- Agile 
+                                             We utilize the adaptive Agile methodology
+                                                at its fullest. It focuses on continuously
+                                                improving processes. We emphasize on
+                                                the delivery of software at the end of
+                                                sprints while we utilize the Agile
+                                                methodology.
+- DevOps 
+                                             A design process wherein we break the
+                                                project into phases such as:
+                                                Requirements, Design, Implementation,
+                                                Verification and Maintenance. We use it
+                                                for projects requiring no/a smaller
+                                                number of changes.
+- Scrum 
+                                             A subset of agile that fits best for projects
+                                                with rapidly changing requirements. We
+                                                use it for its flexibility, and adaptability.
+                                                We undertake fixed-length sprints while
+                                                using Scrum for our clients.
+- Lean 
+                                             We use it for creating more value with
+                                                fewer resources. It emphasizes efficiency
+                                                optimization by eliminating waste,
+                                                advocating for a strong focus while we
+                                                learn from the customer themself.
+- Would you like to speak
+                                        to
+                                        one of our advisers over the phone? Just submit your details and we’ll be in touch
+                                        shortly. You can also email us if you would prefer.
+- Industries We Serve
+                            
+                             As a Software Development Company, we understand
+                                every industry has its own set of challenges. We don't offer a one-size-fits-all solution.
+                                Instead, we focus on the unique risks, opportunities, and best practices of your domain.
+                                This allows us to craft agile and
+                                resilient IT solutions that are specifically tailored to your business needs. Let's build
+                                something strong together.
+- Awards &amp; Achievements
+                        We are proud to be the holders of eminent industry awards that reflect our
+                            past
+                            contribution and excellence throughout the field.
+- ISO 9001-2015 for Quality Management System
+                                            Inbox Infotech Private LTD. has been awarded ISO 9001-2015 for Quality Management System
+- ISO 27001-2013 for Information Security Management System
+                                            Inbox Infotech Private LTD. has been awarded &nbsp;ISO 27001-2013 for Information Security Management System
+- Woman Entrepreneur
+                                            Inbox Infotech bagged Middle-East Asia Leadership Summit and wards (2016-2017) – Woman Entrepreneur of the Year 2016
+- IWC
+                                            Inbox Infotech was honored among IWC (Indian Women Convention) – Women Leader, Excellence in IT, 2017
+- Hot 100 Startup Awards
+                                            Inbox Infotech was recognized as Hot 100 Startup Awards – 2017
+- Prestigious Asia Leadership Summit and Award
+                                            Inbox Infotech won the prestigious Asia Leadership Summit and Award (2016-2017)
+- -->
+                                 Our Expertise
+                                Working with our certified experts means you get tailored,
+                                    high-quality solutions, delivered on time and within budget. We ensure seamless
+                                    collaboration, leveraging industry-best practices to bring your vision to life with
+                                    efficiency and reliability.
+                                
+                                <!--
+- User-friendly Interface
 
 
-    <!-- </div> -->
+🔸 SERVICES:
+- Services
+              
+                
+                  Home
+                  Services
+- If you have any query related development we are available 24/7
+- We transform brands, grow businesses, and tell brand and product stories in a most creative way.
+- We cover a large range of creative platforms and digital projects with one purpose: to create experiences.
+- We guide you through the pipelines that generate new products with higher potential and lower risk.
+- We provide energy-efficient and environmentally conservative solutions to our clients to boost their business.
+- Based on solid strategic framework and real, relevant research, we create prototypes, not presentations.
+- We work buy side and sell side to give our clients hard hitting answers and focus hard on best opportunities.
 
 
-    <!-- end of .container-->
-  </section>
-  <!-- <section> close ============================-->
+🔸 PRODUCTS:
+- Products
+              
+                
+                  Home
+                  Products
+- Travel &amp; Hospitality
 
-</footer>
-        <!-- ===============================================-->
-        <!--    JavaScripts-->
-        <!-- ===============================================-->
-        <script src="https://www.inboxtechs.com/public/vendors/popper/popper.min.js"></script>
-        <script src="https://www.inboxtechs.com/public/vendors/bootstrap/bootstrap.min.js"></script>
-        <script src="https://www.inboxtechs.com/public/vendors/is/is.min.js"></script>
-        <script src="https://www.inboxtechs.com/public/vendors/bigpicture/BigPicture.js"> </script>
-        <script src="https://www.inboxtechs.com/public/vendors/countup/countUp.umd.js"> </script>
-        <script src="https://www.inboxtechs.com/public/vendors/swiper/swiper-bundle.min.js"></script>
-        <script src="https://www.inboxtechs.com/public/vendors/aos/aos.js"></script>
-        <script src="https://www.inboxtechs.com/public/vendors/fontawesome/all.min.js"></script>
-        <script src="https://www.inboxtechs.com/public/vendors/lodash/lodash.min.js"></script>
-        <script src="https://www.inboxtechs.com/public/vendors/imagesloaded/imagesloaded.pkgd.min.js"></script>
-        <script src="https://www.inboxtechs.com/public/vendors/gsap/gsap.js"></script>
-        <script src="https://www.inboxtechs.com/public/vendors/gsap/customEase.js"></script>
-        <script src="https://www.inboxtechs.com/public/assets/js/theme.js"></script>
-        <script src="https://www.gptbots.ai/widget/wejx8m4ws8arow6w4xkbnle/chat.js"></script>  
-        <script type='application/ld+json'>
-            {
-                "@context": "http://www.schema.org",
-                "@type": "LocalBusiness",
-                "name": "Inbox Infotech",
-                "url": "https://inboxtechs.com/",
-                "logo": "https://inboxtechs.com/inbox_new/public/inbox-logo.png",
-                "image": "https://inboxtechs.com/inbox_new/public/inbox-logo.png",
-                "description": "A managed cloud services provider manages partial or complete cloud platforms of their clients, including the migration, maintenance and optimization",
-                "address": {
-                    "@type": "PostalAddress",
-                    "streetAddress": "402- 4 floor A, B, C, C Square Building Sarabhai Campus, nr. Genda Circle",
-                    "addressLocality": "Vadodara",
-                    "addressRegion": "Gujarat",
-                    "postalCode": "390007",
-                    "addressCountry": "India"
-                },
-                "hasMap": "https://goo.gl/maps/RmvzhADjEqo86uab7",
-                "openingHours": "Mo, Tu, We, Th, Fr, 09:00-19:00",
-                "contactPoint": {
-                    "@type": "ContactPoint",
-                    "telephone": "+91 9662398895",
-                    "contactType": "Sales"
-                }
-            }
-        </script>
-        <!-- Google tag (gtag.js) -->
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-2BZVQVR6BW"></script>
-        <script>
-            window.dataLayer = window.dataLayer || [];
 
-            function gtag() {
-                dataLayer.push(arguments);
-            }
-            gtag('js', new Date());
-            gtag('config', 'G-2BZVQVR6BW');
-        </script>
-    </body>
-</html>
+🔸 INDUSTRIES:
+- Industries
+              
+                
+                  Home
+                  Industries
+- Industries
+			As industries converge and new industries emerge, we are re-imagining our strategy, solutions, and platforms as well. Our innovators and thought leaders are in continuing conversations with those who influence and shape the future of industries.
+- Retail and Consumer Goods
+- Communications &amp; Media
+- Defense &amp; Aerospace
+- Fast Moving Consumer Goods
+- Transport &amp; Logistics
 
-=== HTML CONTENT END ===
+
+🔸 JOBS:
+- Careers
+            
+              
+                Home
+                Careers
+- SAP Consultant (Treasury &amp; Fico)
+- SAP Treasury (TRM), SAP FICO (Financial Accounting &amp; Controlling), Indian GST processes, SAP Cash Management, Liquidity Management, Bank Account Management, Risk Management, SAP S/4HANA, Problem-solving
+- Last Date to Apply : 2025-07-31
+- Experience : 10+ years
+- Apply Now
+                          
+                              ⟶
+- Buisness Development Manager (BDM)
+- Industry Knowledge, Sales Expertise, Communication Skills,  Negotiation Skills, Strategic Thinking, Technical Aptitude
+- Experience : 6 to 8 Years
+- React.js, Redux, Context API, JavaScript (ES6+), HTML5, CSS3, Responsive Design, Git
+- Experience : 3 to 5 years
+- Node.js, Express.js, RESTful API, Git, JWT, OAuth, AWS, Azure, GC, MongoDB, MySQL, PostgreSQL
+- Experience : 4 to 6 Years
+- Industry Knowledge, Sales Expertise, Communication Skills, Negotiation Skills, Strategic Thinking, Technical Aptitude
+- Experience : 2 to 4 years
+- Figma, Adobe XD, Sketch, Photoshop, Prototype, Wireframe
+
+
+🔸 CONTACT:
+- Contact
+                        
+                            
+                                Home
+                                Contact
+- -->
+                
+                    
+                        
+                            
+                                
+                                    India
+                                    Inbox Infotech Pvt Ltd,
+                                        615- Supremus Vihav
+                                        Building, Vadodara,
+                                        Gujarat, India 390021
+- USA 
+                                     Inbox Infotech Pvt Ltd,
+                                        1150 E Yorba Linda Blvd,
+                                        Placentia, CA 92870 United
+                                        States
+                                    
+                                    <a
+            href="tel:+1-408-641-3739"> +1-408-641-3739
+- Dubai 
+                                     INBOX INFOTECH FZ-LLC, RAKEZ - Ras al Khaimah, Dubai
+                                    
+                                    <a
+            href="tel:+1-408-641-3739"> +1-408-641-3739
+- -->
+
+                        
+                            
+                                
+                                    New Delhi
+                                    1301 Naurang HouseCannaught Place-110001 New
+                                        Delhi,India
+- Bangalore
+                                    EVOMA CO – working andhotel,Old madras road,KR
+                                        Puram,Bangalore
+                                        560049 India
+- -->
+                             -->
+📞 +91 9662398895
+📞 91 9662398895
+📞 230499585334
+📞 12733069692024
+📞 298007754236604
+✉️ info@Inbox-infotech.com
+✉️ hr@Inbox-infotech.com
+- Address: 615- Supremus Vihav
+                                        Building, Vadodara,
+                                        Gujarat, India
+- Address: 1150 E Yorba Linda Blvd,
+                                        Placentia, CA
+- Address: 615- Supremus Vihav Building,
+                  Vadodara, Gujarat, India
+- Address: 1150 E Yorba Linda Blvd, Placentia,
+                  CA
+
+

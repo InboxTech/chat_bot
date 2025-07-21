@@ -1,24 +1,46 @@
-﻿<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat with GPT/Gemini - Inbox-Infotech</title>
+﻿@{
+    ViewData["Title"] = "Chat";
+}
+
+@section Styles {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="~/css/site.css" rel="stylesheet" />
+
     <style>
         :root {
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            --dark-bg: #1a1d29;
-            --card-bg: #ffffff;
-            --text-primary: #2d3748;
-            --text-secondary: #718096;
-            --border-color: #e2e8f0;
-            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-            --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            --primary-color: #667eea;
+            --primary-dark: #5a67d8;
+            --secondary-color: #f093fb;
+            --accent-color: #4facfe;
+            --success-color: #48bb78;
+            --warning-color: #ed8936;
+            --danger-color: #f56565;
+            --dark-color: #2d3748;
+            --light-color: #f7fafc;
+            --white: #ffffff;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            --gradient-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --message-gradient: linear-gradient(135deg, #667eea 0%, #f093fb 100%);
+            --bot-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --card-gradient: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            --border-radius: 16px;
+            --border-radius-lg: 24px;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
         }
 
         * {
@@ -29,508 +51,673 @@
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--gradient-bg);
             min-height: 100vh;
-            padding: 20px 0;
+            overflow: hidden;
         }
 
-        .main-container {
-            max-width: 900px;
+        .chat-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            max-width: 100%;
             margin: 0 auto;
-            padding: 0 20px;
-        }
-
-        .chat-card {
-            background: var(--card-bg);
-            border-radius: 24px;
-            box-shadow: var(--shadow-xl);
-            border: none;
-            overflow: hidden;
-            backdrop-filter: blur(20px);
-            animation: slideUp 0.6s ease-out;
-        }
-
-        
-
-        .chat-header {
-            background: var(--primary-gradient);
-            color: white;
-            padding: 25px 30px;
-            border: none;
+            background: var(--white);
             position: relative;
-            overflow: hidden;
+            animation: slideIn 0.5s ease-out;
         }
 
-            .chat-header::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.05)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
-                opacity: 0.3;
-            }
-
-        .chat-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin: 0;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            position: relative;
-            z-index: 1;
-        }
-     
-
-        .chat-body {
-            height: 500px;
-            overflow-y: auto;
-            padding: 0;
-            background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
-            position: relative;
-        }
-
-        .chat-messages {
-            padding: 30px;
-            min-height: 100%;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .welcome-message {
-            text-align: center;
-            color: var(--text-secondary);
-            padding: 60px 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .welcome-icon {
-            font-size: 3rem;
-            background: var(--primary-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .message-container {
-            display: flex;
-            margin-bottom: 20px;
-            animation: messageSlide 0.3s ease-out;
-        }
-
-
-        .message-container.user {
-            justify-content: flex-end;
-        }
-
-        .message-bubble {
-            max-width: 75%;
-            padding: 16px 20px;
-            border-radius: 20px;
-            font-size: 0.95rem;
-            line-height: 1.5;
-            position: relative;
-            word-wrap: break-word;
-        }
-
-            .message-bubble.user {
-                background: var(--primary-gradient);
-                color: white;
-                border-bottom-right-radius: 8px;
-                box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-            }
-
-            .message-bubble.bot {
-                background: white;
-                color: var(--text-primary);
-                border: 1px solid var(--border-color);
-                border-bottom-left-radius: 8px;
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            }
-
-        .message-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.1rem;
-            margin: 0 12px;
-            flex-shrink: 0;
-        }
-
-            .message-avatar.user {
-                background: var(--secondary-gradient);
-                color: white;
-                order: 2;
-            }
-
-            .message-avatar.bot {
-                background: var(--success-gradient);
-                color: white;
-            }
-
-        .bot-label {
-            font-weight: 600;
-            font-size: 0.85rem;
-            margin-bottom: 6px;
-            display: block;
-        }
-
-        .chat-footer {
-            background: white;
-            border-top: 1px solid var(--border-color);
-            padding: 25px 30px;
-        }
-
-        .input-container {
-            position: relative;
-            display: flex;
-            gap: 12px;
-            align-items: center;
-        }
-
-        .message-input {
-            flex: 1;
-            border: 2px solid var(--border-color);
-            border-radius: 25px;
-            padding: 15px 25px;
-            font-size: 0.95rem;
-            background: #f8fafc;
-            transition: all 0.3s ease;
-            outline: none;
-        }
-
-            .message-input:focus {
-                border-color: #667eea;
-                background: white;
-                box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-            }
-
-        .send-button {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: var(--primary-gradient);
-            border: none;
-            color: white;
-            font-size: 1.1rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-        }
-
-            .send-button:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
-            }
-
-            .send-button:active {
-                transform: translateY(0);
-            }
-
-        .typing-indicator {
+        .webcam-status {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 8px 16px;
+            background: var(--success-color);
+            color: var(--white);
+            border-radius: var(--border-radius);
+            font-size: 14px;
             display: none;
-            padding: 15px 20px;
-            margin-bottom: 15px;
         }
 
-        .typing-dots {
-            display: flex;
-            gap: 4px;
-        }
-
-        .typing-dot {
-            width: 8px;
-            height: 8px;
-            background: var(--text-secondary);
-            border-radius: 50%;
-            animation: typingBounce 1.4s infinite ease-in-out;
-        }
-
-            .typing-dot:nth-child(1) {
-                animation-delay: -0.32s;
+            .webcam-status.active {
+                display: block;
             }
 
-            .typing-dot:nth-child(2) {
-                animation-delay: -0.16s;
-            }
-
-       
-
-        .error-message {
-            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-            color: #dc2626;
-            border-left: 4px solid #ef4444;
+        .modal-content {
+            background: var(--white);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-lg);
         }
 
-        /* Scrollbar Styling */
-        .chat-body::-webkit-scrollbar {
-            width: 6px;
-        }
+        </style>
+}
 
-        .chat-body::-webkit-scrollbar-track {
-            background: #f1f5f9;
-        }
-
-        .chat-body::-webkit-scrollbar-thumb {
-            background: linear-gradient(135deg, #cbd5e1, #94a3b8);
-            border-radius: 3px;
-        }
-
-            .chat-body::-webkit-scrollbar-thumb:hover {
-                background: linear-gradient(135deg, #94a3b8, #64748b);
-            }
-
-        
-
-        .chat-card {
-            border-radius: 16px;
-            margin: 10px 0;
-        }
-
-        .chat-header {
-            padding: 20px;
-        }
-
-        .chat-title {
-            font-size: 1.3rem;
-        }
-
-        .status-indicator {
-            position: static;
-            margin-top: 10px;
-            align-self: flex-start;
-        }
-
-        .chat-body {
-            height: 400px;
-        }
-
-        .chat-messages {
-            padding: 20px;
-        }
-
-        .message-bubble {
-            max-width: 85%;
-        }
-
-        .chat-footer {
-            padding: 20px;
-        }
-
-        }
-    </style>
-</head>
-<body>
-    <div class="main-container">
-        <div class="card chat-card">
-            <div class="card-header chat-header">
-                <div class="chat-title">
-                    <i class="fas fa-robot"></i>
-                    Chat with Inbox-Infotech
-                </div>
-               
-               
+<div class="chat-container">
+    <!-- Header -->
+    <div class="chat-header">
+        <div class="header-left">
+            <div class="header-avatar">
+                <i class="fas fa-robot"></i>
             </div>
+            <div class="header-info">
+                <h1>Inbox-Infotech AI</h1>
+                <p>Your intelligent company assistant</p>
+            </div>
+        </div>
+       @*  <div class="header-actions">
+            <button class="header-btn" title="Clear Chat" onclick="clearChat()">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div> *@
+    </div>
 
-            <div class="card-body chat-body" id="chatLog">
-                <div class="chat-messages">
-                    <div class="welcome-message">
-                        <i class="fas fa-comments welcome-icon"></i>
-                        <h5>Welcome to Inbox-Infotech Chat</h5>
-                        <p>Start a conversation with our intelligent AI assistants. Ask anything!</p>
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+        <button class="quick-btn" onclick="sendQuickMessage('How can I contact to this company?')">
+            <i class="fas fa-phone"></i>
+            <span>Contact</span>
+        </button>
+        <button class="quick-btn" onclick="sendQuickMessage('Tell me about this company.')">
+            <i class="fas fa-info-circle"></i>
+            <span>About</span>
+        </button>
+        <button class="quick-btn" onclick="sendQuickMessage('Which industries does this company serve?')">
+            <i class="fas fa-industry"></i>
+            <span>Industries</span>
+        </button>
+        <button class="quick-btn" onclick="sendQuickMessage('What services does this company provide?')">
+            <i class="fas fa-cogs"></i>
+            <span>Services</span>
+        </button>
+        <button class="quick-btn" onclick="sendQuickMessage('What products does this company offer?')">
+            <i class="fas fa-box"></i>
+            <span>Products</span>
+        </button>
+        <button class="quick-btn" onclick="sendQuickMessage('I want to apply for a job in this company.')">
+            <i class="fas fa-briefcase"></i>
+            <span>Jobs</span>
+        </button>
+    </div>
+
+    <!-- Messages Area -->
+    <div class="messages-container" id="messagesContainer">
+        <div class="messages-list" id="messagesList">
+            <div class="welcome-screen" id="welcomeScreen">
+                <div class="welcome-icon">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <h2 class="welcome-title">Welcome to Inbox-Infotech AI</h2>
+                <p class="welcome-subtitle">I'm here to help you with information about our company, services, products, or job openings. You can also upload your resume to find matching opportunities!</p>
+                <div class="welcome-suggestions">
+                    @* <div class="suggestion-card" onclick="sendQuickMessage('What services do you offer?')">
+                        <div class="suggestion-icon"><i class="fas fa-cogs"></i></div>
+                        <div class="suggestion-title">Our Services</div>
+                        <div class="suggestion-desc">Explore our comprehensive range of professional services</div>
+                    </div> *@
+                    <div class="suggestion-card" onclick="sendQuickMessage('Tell me about your products')">
+                        <div class="suggestion-icon"><i class="fas fa-box"></i></div>
+                        <div class="suggestion-title">Our Products</div>
+                        <div class="suggestion-desc">Discover our innovative product solutions</div>
+                    </div>
+                    <div class="suggestion-card" onclick="sendQuickMessage('Where are you located?')">
+                        <div class="suggestion-icon"><i class="fas fa-map-marker-alt"></i></div>
+                        <div class="suggestion-title">Our Location</div>
+                        <div class="suggestion-desc">Find our office locations and contact details</div>
+                    </div>
+                    <div class="suggestion-card" onclick="sendQuickMessage('What job openings do you have?')">
+                        <div class="suggestion-icon"><i class="fas fa-briefcase"></i></div>
+                        <div class="suggestion-title">Career Opportunities</div>
+                        <div class="suggestion-desc">Browse available positions and join our team</div>
                     </div>
                 </div>
             </div>
 
             <div class="typing-indicator" id="typingIndicator">
-                <div class="message-container">
-                    <div class="message-avatar bot">
-                        <i class="fas fa-robot"></i>
-                    </div>
-                    <div class="message-bubble bot">
-                        <div class="typing-dots">
-                            <div class="typing-dot"></div>
-                            <div class="typing-dot"></div>
-                            <div class="typing-dot"></div>
-                        </div>
-                    </div>
+                <div class="message-avatar">
+                    <i class="fas fa-robot"></i>
                 </div>
-            </div>
-
-            <div class="card-footer chat-footer">
-                <div class="input-container">
-                    <input id="userInput"
-                           type="text"
-                           class="form-control message-input"
-                           placeholder="Type your message here..."
-                           maxlength="500" />
-                    <button class="send-button" onclick="sendMessage()" id="sendBtn">
-                        <i class="fas fa-paper-plane"></i>
-                    </button>
+                <div class="typing-bubble">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
                 </div>
             </div>
         </div>
     </div>
 
+
+
+    <!-- Webcam Consent Modal -->
+    <div class="modal fade" id="webcamConsentModal" tabindex="-1" aria-labelledby="webcamConsentModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="webcamConsentModalLabel">Webcam Access Consent</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    To ensure a fair interview process, we require webcam access to capture periodic snapshots during the interview. These images will be used solely for verification purposes and will be securely stored. Do you consent to this?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="denyWebcamAccess()">Deny</button>
+                    <button type="button" class="btn btn-primary" onclick="grantWebcamAccess()">Allow</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden Video Element for Webcam -->
+    <video id="webcam" style="display: none;" autoplay></video>
+    <canvas id="snapshotCanvas" style="display: none;"></canvas>
+    <!-- Input Area -->
+    <div class="chat-input">
+        <div class="input-wrapper">
+            <textarea class="message-input" id="messageInput" placeholder="Type your message..." rows="1" oninput="autoResize(this)" onkeypress="handleKeyPress(event)"></textarea>
+            <div class="input-actions">
+                <button class="input-btn voice-btn" id="micButton" title="Start Speech Recognition" onclick="startSpeechRecognition()">
+                    <i class="fas fa-microphone"></i>
+                </button>
+                <button class="upload-btn" onclick="triggerFileInput()">
+                    <i class="fas fa-paperclip"></i> Resume
+                </button>
+                <input type="file" id="fileInput" accept=".pdf,.docx" />
+                <button class="input-btn send-btn" id="sendButton" title="Send Message" onclick="sendMessage()">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const chatLog = document.getElementById("chatLog");
-        const chatMessages = chatLog.querySelector('.chat-messages');
-        const typingIndicator = document.getElementById("typingIndicator");
-        const sendBtn = document.getElementById("sendBtn");
-        const userInput = document.getElementById("userInput");
+        // Initialize Speech Recognition
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition = null;
+        let isRecording = false;
 
-        // Remove welcome message on first interaction
-        let isFirstMessage = true;
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = true;
+            recognition.lang = 'en-US';
 
-        function appendMessage(role, text, model = null) {
-            if (isFirstMessage) {
-                chatMessages.innerHTML = '';
-                isFirstMessage = false;
-            }
+            recognition.onresult = function(event) {
+                let interimTranscript = '';
+                let finalTranscript = '';
 
-            const messageContainer = document.createElement("div");
-            messageContainer.className = `message-container ${role}`;
-
-            const isError = text.includes("❌ Error");
-            const bubbleClass = isError ? `message-bubble ${role} error-message` : `message-bubble ${role}`;
-
-            if (role === 'user') {
-                messageContainer.innerHTML = `
-                    <div class="message-bubble user">
-                        ${escapeHtml(text)}
-                    </div>
-                    <div class="message-avatar user">
-                        <i class="fas fa-user"></i>
-                    </div>
-                `;
-            } else {
-                const modelLabel = model === "gemini" ? "Gemini" : "GPT";
-                const modelIcon = model === "gemini" ? "fas fa-gem" : "fas fa-brain";
-
-                messageContainer.innerHTML = `
-                    <div class="message-avatar bot">
-                        <i class="${modelIcon}"></i>
-                    </div>
-                    <div class="${bubbleClass}">
-                        <span class="bot-label">${modelLabel} AI</span>
-                        ${text}
-                    </div>
-                `;
-            }
-
-            chatMessages.appendChild(messageContainer);
-            chatLog.scrollTop = chatLog.scrollHeight;
-        }
-
-        function showTypingIndicator() {
-            typingIndicator.style.display = 'block';
-            chatLog.scrollTop = chatLog.scrollHeight;
-        }
-
-        function hideTypingIndicator() {
-            typingIndicator.style.display = 'none';
-        }
-
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        function setLoading(loading) {
-            sendBtn.disabled = loading;
-            userInput.disabled = loading;
-
-            if (loading) {
-                sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-                showTypingIndicator();
-            } else {
-                sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
-                hideTypingIndicator();
-            }
-        }
-
-        function sendMessage() {
-            const message = userInput.value.trim();
-            if (!message || sendBtn.disabled) return;
-
-            appendMessage('user', message);
-            userInput.value = "";
-            setLoading(true);
-
-            fetch('/Chat/SendMessage', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ UserMessage: message })
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcript;
+                    } else {
+                        interimTranscript += transcript;
+                    }
                 }
-                return response.json();
-            })
-            .then(data => {
-                setLoading(false);
-                appendMessage('bot', data.response, data.model);
-            })
-            .catch(error => {
-                setLoading(false);
-                console.error('Error:', error);
-                appendMessage('bot', "❌ Sorry, I couldn't process your request. Please try again later.");
+
+                const messageInput = document.getElementById('messageInput');
+                messageInput.value = finalTranscript || interimTranscript;
+                autoResize(messageInput);
+            };
+
+            recognition.onend = function() {
+                isRecording = false;
+                const micButton = document.getElementById('micButton');
+                micButton.classList.remove('recording');
+                micButton.title = 'Start Speech Recognition';
+            };
+
+            recognition.onerror = function(event) {
+                console.error('Speech recognition error:', event.error);
+                isRecording = false;
+                const micButton = document.getElementById('micButton');
+                micButton.classList.remove('recording');
+                micButton.title = 'Start Speech Recognition';
+                alert('Speech recognition error: ' + event.error);
+            };
+        }
+
+        // Start/Stop Speech Recognition
+        function startSpeechRecognition() {
+            if (!SpeechRecognition) {
+                alert('Speech recognition is not supported in this browser.');
+                return;
+            }
+
+            if (isRecording) {
+                recognition.stop();
+                isRecording = false;
+                const micButton = document.getElementById('micButton');
+                micButton.classList.remove('recording');
+                micButton.title = 'Start Speech Recognition';
+            } else {
+                recognition.start();
+                isRecording = true;
+                const micButton = document.getElementById('micButton');
+                micButton.classList.add('recording');
+                micButton.title = 'Stop Speech Recognition';
+            }
+        }
+
+        // Trigger file input click
+        function triggerFileInput() {
+            document.getElementById('fileInput').click();
+        }
+
+        // Auto-resize textarea
+        function autoResize(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = `${textarea.scrollHeight}px`;
+        }
+
+        // Handle Enter key to send message
+        function handleKeyPress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        // Send quick action message
+        function sendQuickMessage(message) {
+            document.getElementById('messageInput').value = message;
+            sendMessage();
+        }
+
+        // Clear chat
+        function clearChat() {
+            const messagesList = document.getElementById('messagesList');
+            messagesList.innerHTML = `
+                <div class="welcome-screen" id="welcomeScreen">
+                    <div class="welcome-icon">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <h2 class="welcome-title">Welcome to Inbox-Infotech AI</h2>
+                    <p class="welcome-subtitle">I'm here to help you with information about our company, services, products, or job openings. You can also upload your resume to find matching opportunities!</p>
+                    <div class="welcome-suggestions">
+                        <div class="suggestion-card" onclick="sendQuickMessage('What services do you offer?')">
+                            <div class="suggestion-icon"><i class="fas fa-cogs"></i></div>
+                            <div class="suggestion-title">Our Services</div>
+                            <div class="suggestion-desc">Explore our comprehensive range of professional services</div>
+                        </div>
+                        <div class="suggestion-card" onclick="sendQuickMessage('Tell me about your products')">
+                            <div class="suggestion-icon"><i class="fas fa-box"></i></div>
+                            <div class="suggestion-title">Our Products</div>
+                            <div class="suggestion-desc">Discover our innovative product solutions</div>
+                        </div>
+                        <div class="suggestion-card" onclick="sendQuickMessage('Where are you located?')">
+                            <div class="suggestion-icon"><i class="fas fa-map-marker-alt"></i></div>
+                            <div class="suggestion-title">Our Location</div>
+                            <div class="suggestion-desc">Find our office locations and contact details</div>
+                        </div>
+                        <div class="suggestion-card" onclick="sendQuickMessage('What job openings do you have?')">
+                            <div class="suggestion-icon"><i class="fas fa-briefcase"></i></div>
+                            <div class="suggestion-title">Career Opportunities</div>
+                            <div class="suggestion-desc">Browse available positions and join our team</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="typing-indicator" id="typingIndicator">
+                    <div class="message-avatar">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="typing-bubble">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    </div>
+                </div>`;
+            document.getElementById('messageInput').value = '';
+            autoResize(document.getElementById('messageInput'));
+        }
+
+        // Send message to server
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            if (!message) return;
+
+            // Hide welcome screen
+            const welcomeScreen = document.getElementById('welcomeScreen');
+            if (welcomeScreen) {
+                welcomeScreen.style.display = 'none';
+            }
+
+            // Add user message
+            const messagesList = document.getElementById('messagesList');
+            const userMessageDiv = document.createElement('div');
+            userMessageDiv.className = 'message user';
+            userMessageDiv.innerHTML = `
+                <div class="message-content">
+                    <div class="message-bubble">${message}</div>
+                    <div class="message-time">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                </div>
+                <div class="message-avatar"><i class="fas fa-user"></i></div>`;
+
+            // Insert before typing indicator
+            const typingIndicator = document.getElementById('typingIndicator');
+            messagesList.insertBefore(userMessageDiv, typingIndicator);
+
+            // Scroll to bottom
+            const messagesContainer = document.getElementById('messagesContainer');
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+            // Show typing indicator
+            typingIndicator.style.display = 'flex';
+
+            // Clear input
+            input.value = '';
+            autoResize(input);
+
+            // Send message to server
+            $.ajax({
+                url: '/Chat/SendMessage',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ userMessage: message }),
+                success: function (response) {
+                    typingIndicator.style.display = 'none';
+                    const botMessageDiv = document.createElement('div');
+                    botMessageDiv.className = 'message bot';
+                    botMessageDiv.innerHTML = `
+                        <div class="message-avatar"><i class="fas fa-robot"></i></div>
+                        <div class="message-content">
+                            <div class="message-bubble">${response.response}</div>
+                            <div class="message-time">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                        </div>`;
+                    messagesList.insertBefore(botMessageDiv, typingIndicator);
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                },
+                error: function () {
+                    typingIndicator.style.display = 'none';
+                    const errorMessageDiv = document.createElement('div');
+                    errorMessageDiv.className = 'message bot';
+                    errorMessageDiv.innerHTML = `
+                        <div class="message-avatar"><i class="fas fa-robot"></i></div>
+                        <div class="message-content">
+                            <div class="message-bubble">❌ Sorry, I encountered an error. Please try again.</div>
+                            <div class="message-time">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                        </div>`;
+                    messagesList.insertBefore(errorMessageDiv, typingIndicator);
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                }
             });
         }
 
-        // Enhanced enter key support
-        userInput.addEventListener("keydown", function (e) {
-            if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
+        // Handle file upload
+        document.getElementById('fileInput').addEventListener('change', function (event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const validExtensions = ['.pdf', '.docx'];
+            const maxSize = 5 * 1024 * 1024; // 5MB
+            const extension = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+
+            if (!validExtensions.includes(extension)) {
+                alert('Please upload a PDF or Word (.docx) file.');
+                event.target.value = '';
+                return;
             }
+
+            if (file.size > maxSize) {
+                alert('File size exceeds 5MB. Please upload a smaller file.');
+                event.target.value = '';
+                return;
+            }
+
+            // Hide welcome screen
+            const welcomeScreen = document.getElementById('welcomeScreen');
+            if (welcomeScreen) {
+                welcomeScreen.style.display = 'none';
+            }
+
+            // Add user message indicating file upload
+            const messagesList = document.getElementById('messagesList');
+            const userMessageDiv = document.createElement('div');
+            userMessageDiv.className = 'message user';
+            userMessageDiv.innerHTML = `
+                <div class="message-content">
+                    <div class="message-bubble">📄 Uploaded resume: ${file.name}</div>
+                    <div class="message-time">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                </div>
+                <div class="message-avatar"><i class="fas fa-user"></i></div>`;
+
+            // Insert before typing indicator
+            const typingIndicator = document.getElementById('typingIndicator');
+            messagesList.insertBefore(userMessageDiv, typingIndicator);
+
+            // Scroll to bottom
+            const messagesContainer = document.getElementById('messagesContainer');
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+            // Show typing indicator
+            typingIndicator.style.display = 'flex';
+
+            // Upload file to server
+            const formData = new FormData();
+            formData.append('resume', file);
+            $.ajax({
+                url: '/Chat/UploadResume',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    typingIndicator.style.display = 'none';
+                    const botMessageDiv = document.createElement('div');
+                    botMessageDiv.className = 'message bot';
+                    botMessageDiv.innerHTML = `
+                        <div class="message-avatar"><i class="fas fa-robot"></i></div>
+                        <div class="message-content">
+                            <div class="message-bubble">${response.response}</div>
+                            <div class="message-time">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                        </div>`;
+                    messagesList.insertBefore(botMessageDiv, typingIndicator);
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                    event.target.value = '';
+                },
+                error: function () {
+                    typingIndicator.style.display = 'none';
+                    const errorMessageDiv = document.createElement('div');
+                    errorMessageDiv.className = 'message bot';
+                    errorMessageDiv.innerHTML = `
+                        <div class="message-avatar"><i class="fas fa-robot"></i></div>
+                        <div class="message-content">
+                            <div class="message-bubble">❌ Error uploading resume. Please try again.</div>
+                            <div class="message-time">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                        </div>`;
+                    messagesList.insertBefore(errorMessageDiv, typingIndicator);
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                    event.target.value = '';
+                }
+            });
         });
 
-        // Auto-resize input and character counter
-        userInput.addEventListener('input', function() {
-            const remaining = 500 - this.value.length;
-            // You can add a character counter here if needed
-        });
-
-        // Focus input on page load
-        window.addEventListener('load', function() {
-            userInput.focus();
-        });
-                // Track tab switches
+        // Track tab switches
         let tabSwitchCount = 0;
-
-        document.addEventListener("visibilitychange", function () {
+        document.addEventListener('visibilitychange', function () {
             if (document.hidden) {
                 tabSwitchCount++;
-                sendTabSwitchCount(tabSwitchCount);
+                $.ajax({
+                    url: '/Chat/UpdateTabSwitchCount',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ count: tabSwitchCount }),
+                    error: function () {
+                        console.error('Error updating tab switch count');
+                    }
+                });
             }
         });
 
-        function sendTabSwitchCount(count) {
-            fetch('/Chat/UpdateTabSwitchCount', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ count: count })
-            }).catch(err => console.error("Tab switch update failed:", err));
+
+                // Webcam variables
+        let webcamStream = null;
+        let snapshotInterval = null;
+        const snapshotFrequency = 30000; // Take snapshot every 30 seconds
+
+        // Request webcam access
+        function requestWebcamAccess() {
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                $('#webcamConsentModal').modal('show');
+            } else {
+                alert('Webcam access is not supported in this browser.');
+            }
         }
 
+        // Grant webcam access
+        function grantWebcamAccess() {
+            $('#webcamConsentModal').modal('hide');
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(stream => {
+                    webcamStream = stream;
+                    const webcam = document.getElementById('webcam');
+                    webcam.srcObject = stream;
+                    document.querySelector('.webcam-status').classList.add('active');
+                    document.querySelector('.webcam-status').textContent = 'Webcam Active';
+                    startSnapshotCapture();
+                })
+                .catch(error => {
+                    console.error('Webcam access error:', error);
+                    alert('Unable to access webcam. Please ensure permissions are granted.');
+                });
+        }
+
+        // Deny webcam access
+        function denyWebcamAccess() {
+            $('#webcamConsentModal').modal('hide');
+            alert('Webcam access denied. The interview cannot proceed without webcam access.');
+            sendQuickMessage('cancel'); // Cancel the interview
+        }
+
+        // Start periodic snapshot capture
+        function startSnapshotCapture() {
+            if (snapshotInterval) clearInterval(snapshotInterval);
+            snapshotInterval = setInterval(captureSnapshot, snapshotFrequency);
+        }
+
+        // Capture and send snapshot
+        function captureSnapshot() {
+            const webcam = document.getElementById('webcam');
+            const canvas = document.getElementById('snapshotCanvas');
+            const context = canvas.getContext('2d');
+            canvas.width = webcam.videoWidth;
+            canvas.height = webcam.videoHeight;
+            context.drawImage(webcam, 0, 0, canvas.width, canvas.height);
+
+            const dataUrl = canvas.toDataURL('image/jpeg');
+            const blob = dataURLtoBlob(dataUrl);
+
+            const formData = new FormData();
+            formData.append('snapshot', blob, `snapshot_${Date.now()}.jpg`);
+
+            $.ajax({
+                url: '/Chat/UploadSnapshot',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    console.log('Snapshot uploaded successfully:', response);
+                },
+                error: function(error) {
+                    console.error('Error uploading snapshot:', error);
+                }
+            });
+        }
+
+        // Convert data URL to Blob
+        function dataURLtoBlob(dataUrl) {
+            const arr = dataUrl.split(',');
+            const mime = arr[0].match(/:(.*?);/)[1];
+            const bstr = atob(arr[1]);
+            let n = bstr.length;
+            const u8arr = new Uint8Array(n);
+            while (n--) {
+                u8arr[n] = bstr.charCodeAt(n);
+            }
+            return new Blob([u8arr], { type: mime });
+        }
+
+        // Stop webcam and snapshot capture
+        function stopWebcam() {
+            if (webcamStream) {
+                webcamStream.getTracks().forEach(track => track.stop());
+                webcamStream = null;
+                if (snapshotInterval) {
+                    clearInterval(snapshotInterval);
+                    snapshotInterval = null;
+                }
+                document.querySelector('.webcam-status').classList.remove('active');
+            }
+        }
+
+        // Modify sendMessage to trigger webcam consent when interview starts
+        $(document).ready(function() {
+            // Add webcam status indicator
+            $('.chat-header').append('<div class="webcam-status">Webcam Inactive</div>');
+
+            // Override sendMessage to check for interview start
+            const originalSendMessage = sendMessage;
+            sendMessage = function() {
+                const input = document.getElementById('messageInput');
+                const message = input.value.trim();
+                if (!message) return;
+
+                // Check if message indicates interview start
+                if (message.match(/\b(yes|yep|yepp|yeah|sure|start)\b/i) &&
+                    $('#messagesList').find('.message.bot').last().text().includes('Are you ready to start the interview')) {
+                    requestWebcamAccess();
+                    // Delay sending the message until webcam access is granted
+                    $('#webcamConsentModal').on('hidden.bs.modal', function() {
+                        if (webcamStream) {
+                            originalSendMessage();
+                        }
+                    });
+                } else {
+                    originalSendMessage();
+                }
+            };
+
+            // Stop webcam when interview is cancelled or completed
+            const originalClearChat = clearChat;
+            clearChat = function() {
+                stopWebcam();
+                originalClearChat();
+            };
+        });
+
+                function grantWebcamAccess() {
+            $('#webcamConsentModal').modal('hide');
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(stream => {
+                    webcamStream = stream;
+                    const webcam = document.getElementById('webcam');
+                    webcam.srcObject = stream;
+                    document.querySelector('.webcam-status').classList.add('active');
+                    document.querySelector('.webcam-status').textContent = 'Webcam Active';
+                    startSnapshotCapture();
+
+                    // Set webcam consent in session
+                    $.ajax({
+                        url: '/Chat/SetWebcamConsent',
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({ consent: 'granted' }),
+                        success: function() {
+                            console.log('Webcam consent recorded.');
+                        },
+                        error: function(error) {
+                            console.error('Error recording webcam consent:', error);
+                        }
+                    });
+                })
+                .catch(error => {
+                    console.error('Webcam access error:', error);
+                    alert('Unable to access webcam. Please ensure permissions are granted.');
+                });
+        }
     </script>
-</body>
-</html>
+}

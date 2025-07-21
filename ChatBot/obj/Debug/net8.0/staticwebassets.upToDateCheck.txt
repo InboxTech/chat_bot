@@ -1,5 +1,15 @@
 wwwroot\css\site.css
+wwwroot\data\compressed_summary.txt
+wwwroot\discovered_links.txt
 wwwroot\favicon.ico
+wwwroot\html\api_responses_638881096206928723.json
+wwwroot\html\html_inboxtechs.com_#about-us_638881094820903857.html
+wwwroot\html\html_inboxtechs.com_#careers_638881095894095561.html
+wwwroot\html\html_inboxtechs.com_#contact-us_638881096174195703.html
+wwwroot\html\html_inboxtechs.com_#industries_638881095629237806.html
+wwwroot\html\html_inboxtechs.com_#products_638881095362656784.html
+wwwroot\html\html_inboxtechs.com_#services_638881095098713998.html
+wwwroot\html\html_inboxtechs.com_638881094547731008.html
 wwwroot\js\site.js
 wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css
 wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css.map

@@ -4,9 +4,12 @@ var builder = WebApplication.CreateBuilder(args);
 
 // MVC + Services
 builder.Services.AddControllersWithViews();
-builder.Services.AddScoped<ChatGPTService>();
+builder.Services.AddSingleton<ChatGPTService>();
 builder.Services.AddScoped<ChatDbService>();
 builder.Services.AddHostedService<ScraperHostedService>();
+builder.Services.AddHttpContextAccessor();
+
+
 
 // ✅ Add session services
 builder.Services.AddSession(options =>
