@@ -430,7 +430,7 @@ Use ONLY the content between === markers to answer user queries or generate inte
             === End User Query ===
 
             Return only the extracted information or the error message.";
-            
+
             var (response, _) = await GetSmartResponseAsync(prompt);
             _responseCache[cacheKey] = response;
             return response;

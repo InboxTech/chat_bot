@@ -66,30 +66,7 @@
             position: relative;
             animation: slideIn 0.5s ease-out;
         }
-
-        .webcam-status {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            padding: 8px 16px;
-            background: var(--success-color);
-            color: var(--white);
-            border-radius: var(--border-radius);
-            font-size: 14px;
-            display: none;
-        }
-
-            .webcam-status.active {
-                display: block;
-            }
-
-        .modal-content {
-            background: var(--white);
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow-lg);
-        }
-
-        </style>
+    </style>
 }
 
 <div class="chat-container">
@@ -104,7 +81,7 @@
                 <p>Your intelligent company assistant</p>
             </div>
         </div>
-       @*  <div class="header-actions">
+        @*  <div class="header-actions">
             <button class="header-btn" title="Clear Chat" onclick="clearChat()">
                 <i class="fas fa-trash"></i>
             </button>
@@ -185,30 +162,6 @@
         </div>
     </div>
 
-
-
-    <!-- Webcam Consent Modal -->
-    <div class="modal fade" id="webcamConsentModal" tabindex="-1" aria-labelledby="webcamConsentModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="webcamConsentModalLabel">Webcam Access Consent</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    To ensure a fair interview process, we require webcam access to capture periodic snapshots during the interview. These images will be used solely for verification purposes and will be securely stored. Do you consent to this?
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="denyWebcamAccess()">Deny</button>
-                    <button type="button" class="btn btn-primary" onclick="grantWebcamAccess()">Allow</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Hidden Video Element for Webcam -->
-    <video id="webcam" style="display: none;" autoplay></video>
-    <canvas id="snapshotCanvas" style="display: none;"></canvas>
     <!-- Input Area -->
     <div class="chat-input">
         <div class="input-wrapper">
@@ -231,7 +184,6 @@
 
 @section Scripts {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // Initialize Speech Recognition
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -551,173 +503,5 @@
                 });
             }
         });
-
-
-                // Webcam variables
-        let webcamStream = null;
-        let snapshotInterval = null;
-        const snapshotFrequency = 30000; // Take snapshot every 30 seconds
-
-        // Request webcam access
-        function requestWebcamAccess() {
-            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                $('#webcamConsentModal').modal('show');
-            } else {
-                alert('Webcam access is not supported in this browser.');
-            }
-        }
-
-        // Grant webcam access
-        function grantWebcamAccess() {
-            $('#webcamConsentModal').modal('hide');
-            navigator.mediaDevices.getUserMedia({ video: true })
-                .then(stream => {
-                    webcamStream = stream;
-                    const webcam = document.getElementById('webcam');
-                    webcam.srcObject = stream;
-                    document.querySelector('.webcam-status').classList.add('active');
-                    document.querySelector('.webcam-status').textContent = 'Webcam Active';
-                    startSnapshotCapture();
-                })
-                .catch(error => {
-                    console.error('Webcam access error:', error);
-                    alert('Unable to access webcam. Please ensure permissions are granted.');
-                });
-        }
-
-        // Deny webcam access
-        function denyWebcamAccess() {
-            $('#webcamConsentModal').modal('hide');
-            alert('Webcam access denied. The interview cannot proceed without webcam access.');
-            sendQuickMessage('cancel'); // Cancel the interview
-        }
-
-        // Start periodic snapshot capture
-        function startSnapshotCapture() {
-            if (snapshotInterval) clearInterval(snapshotInterval);
-            snapshotInterval = setInterval(captureSnapshot, snapshotFrequency);
-        }
-
-        // Capture and send snapshot
-        function captureSnapshot() {
-            const webcam = document.getElementById('webcam');
-            const canvas = document.getElementById('snapshotCanvas');
-            const context = canvas.getContext('2d');
-            canvas.width = webcam.videoWidth;
-            canvas.height = webcam.videoHeight;
-            context.drawImage(webcam, 0, 0, canvas.width, canvas.height);
-
-            const dataUrl = canvas.toDataURL('image/jpeg');
-            const blob = dataURLtoBlob(dataUrl);
-
-            const formData = new FormData();
-            formData.append('snapshot', blob, `snapshot_${Date.now()}.jpg`);
-
-            $.ajax({
-                url: '/Chat/UploadSnapshot',
-                type: 'POST',
-                data: formData,
-                processData: false,
-                contentType: false,
-                success: function(response) {
-                    console.log('Snapshot uploaded successfully:', response);
-                },
-                error: function(error) {
-                    console.error('Error uploading snapshot:', error);
-                }
-            });
-        }
-
-        // Convert data URL to Blob
-        function dataURLtoBlob(dataUrl) {
-            const arr = dataUrl.split(',');
-            const mime = arr[0].match(/:(.*?);/)[1];
-            const bstr = atob(arr[1]);
-            let n = bstr.length;
-            const u8arr = new Uint8Array(n);
-            while (n--) {
-                u8arr[n] = bstr.charCodeAt(n);
-            }
-            return new Blob([u8arr], { type: mime });
-        }
-
-        // Stop webcam and snapshot capture
-        function stopWebcam() {
-            if (webcamStream) {
-                webcamStream.getTracks().forEach(track => track.stop());
-                webcamStream = null;
-                if (snapshotInterval) {
-                    clearInterval(snapshotInterval);
-                    snapshotInterval = null;
-                }
-                document.querySelector('.webcam-status').classList.remove('active');
-            }
-        }
-
-        // Modify sendMessage to trigger webcam consent when interview starts
-        $(document).ready(function() {
-            // Add webcam status indicator
-            $('.chat-header').append('<div class="webcam-status">Webcam Inactive</div>');
-
-            // Override sendMessage to check for interview start
-            const originalSendMessage = sendMessage;
-            sendMessage = function() {
-                const input = document.getElementById('messageInput');
-                const message = input.value.trim();
-                if (!message) return;
-
-                // Check if message indicates interview start
-                if (message.match(/\b(yes|yep|yepp|yeah|sure|start)\b/i) &&
-                    $('#messagesList').find('.message.bot').last().text().includes('Are you ready to start the interview')) {
-                    requestWebcamAccess();
-                    // Delay sending the message until webcam access is granted
-                    $('#webcamConsentModal').on('hidden.bs.modal', function() {
-                        if (webcamStream) {
-                            originalSendMessage();
-                        }
-                    });
-                } else {
-                    originalSendMessage();
-                }
-            };
-
-            // Stop webcam when interview is cancelled or completed
-            const originalClearChat = clearChat;
-            clearChat = function() {
-                stopWebcam();
-                originalClearChat();
-            };
-        });
-
-                function grantWebcamAccess() {
-            $('#webcamConsentModal').modal('hide');
-            navigator.mediaDevices.getUserMedia({ video: true })
-                .then(stream => {
-                    webcamStream = stream;
-                    const webcam = document.getElementById('webcam');
-                    webcam.srcObject = stream;
-                    document.querySelector('.webcam-status').classList.add('active');
-                    document.querySelector('.webcam-status').textContent = 'Webcam Active';
-                    startSnapshotCapture();
-
-                    // Set webcam consent in session
-                    $.ajax({
-                        url: '/Chat/SetWebcamConsent',
-                        type: 'POST',
-                        contentType: 'application/json',
-                        data: JSON.stringify({ consent: 'granted' }),
-                        success: function() {
-                            console.log('Webcam consent recorded.');
-                        },
-                        error: function(error) {
-                            console.error('Error recording webcam consent:', error);
-                        }
-                    });
-                })
-                .catch(error => {
-                    console.error('Webcam access error:', error);
-                    alert('Unable to access webcam. Please ensure permissions are granted.');
-                });
-        }
     </script>
 }

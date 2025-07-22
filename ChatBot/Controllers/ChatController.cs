@@ -435,62 +435,7 @@ namespace ChatBot.Controllers
                         //    }
                         //}
 
-                        //// In the AwaitingInterviewStart state handling
-                        //else if (appState == "AwaitingInterviewStart")
-                        //{
-                        //    if (Regex.IsMatch(msg, @"\b(yes|yep|yepp|yeah|sure|start)\b", RegexOptions.IgnoreCase))
-                        //    {
-                        //        var selectedJob = HttpContext.Session.GetString("SelectedJob") ?? "";
-                        //        if (!string.IsNullOrEmpty(selectedJob))
-                        //        {
-                        //            var (questions, interviewModel) = await _chatGPTService.GenerateRandomInterviewQuestionsWithModelAsync(selectedJob);
-                        //            var newSession = new InterviewSession
-                        //            {
-                        //                UserId = userId,
-                        //                JobTitle = selectedJob,
-                        //                Questions = questions,
-                        //                QuestionIndex = 0,
-                        //                IsComplete = false,
-                        //                TabSwitchCount = 0
-                        //            };
-                        //            _chatDbService.SaveInterviewSession(newSession);
-                        //            response = $"🧪 Starting interview for {selectedJob}.\n❓ Question 1: {questions[0]}";
-                        //            modelUsed = interviewModel;
-                        //            message.BotResponse = response;
-                        //            sessionMessages.Add(message);
-                        //            _chatDbService.SaveMessage(message);
-                        //            SaveAndClearSessionMessages(userDetails?.Name, userDetails?.Phone, userDetails?.Email, true);
-                        //            ClearApplicationState();
-                        //            return Json(new { response, model = modelUsed });
-                        //        }
-                        //        else
-                        //        {
-                        //            response = "❌ No job selected. Please start the application process again or upload your resume to find suitable jobs.";
-                        //            message.BotResponse = response;
-                        //            sessionMessages.Add(message);
-                        //            _chatDbService.SaveMessage(message);
-                        //            SaveAndClearSessionMessages(userDetails?.Name, userDetails?.Phone, userDetails?.Email, true);
-                        //            ClearApplicationState();
-                        //            return Json(new { response, model = modelUsed });
-                        //        }
-                        //    }
-                        //    else if (Regex.IsMatch(msg, @"\b(no|nope|nah|don't)\b", RegexOptions.IgnoreCase))
-                        //    {
-                        //        response = "Okay, the interview will not start. How can I assist you now? To apply for another job, let me know you're interested in job openings or upload your resume.";
-                        //        message.BotResponse = response;
-                        //        sessionMessages.Add(message);
-                        //        _chatDbService.SaveMessage(message);
-                        //        SaveAndClearSessionMessages(userDetails?.Name, userDetails?.Phone, userDetails?.Email, true);
-                        //        ClearApplicationState();
-                        //        return Json(new { response, model = modelUsed });
-                        //    }
-                        //    else
-                        //    {
-                        //        response = currentQuestion.ErrorMessage;
-                        //    }
-                        //}
-
-                        // In the AwaitingInterviewStart block, replace the existing code with:
+                        // In the AwaitingInterviewStart state handling
                         else if (appState == "AwaitingInterviewStart")
                         {
                             if (Regex.IsMatch(msg, @"\b(yes|yep|yepp|yeah|sure|start)\b", RegexOptions.IgnoreCase))
@@ -498,16 +443,6 @@ namespace ChatBot.Controllers
                                 var selectedJob = HttpContext.Session.GetString("SelectedJob") ?? "";
                                 if (!string.IsNullOrEmpty(selectedJob))
                                 {
-                                    // Check if webcam consent was granted (set in session after granting access)
-                                    if (HttpContext.Session.GetString("WebcamConsent") != "granted")
-                                    {
-                                        response = "Webcam access is required to start the interview. Please grant webcam access.";
-                                        message.BotResponse = response;
-                                        sessionMessages.Add(message);
-                                        _chatDbService.SaveMessage(message);
-                                        return Json(new { response, model = modelUsed });
-                                    }
-
                                     var (questions, interviewModel) = await _chatGPTService.GenerateRandomInterviewQuestionsWithModelAsync(selectedJob);
                                     var newSession = new InterviewSession
                                     {
@@ -847,81 +782,6 @@ namespace ChatBot.Controllers
         public class TabSwitchModel
         {
             public int Count { get; set; }
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> UploadSnapshot(IFormFile snapshot)
-        {
-            string userId = HttpContext.Session.Id;
-            string response = "";
-            string modelUsed = "custom";
-
-            try
-            {
-                if (snapshot == null || snapshot.Length == 0)
-                {
-                    response = "❌ No snapshot uploaded.";
-                    return Json(new { response, model = modelUsed });
-                }
-
-                if (snapshot.Length > 2 * 1024 * 1024) // 2MB limit
-                {
-                    response = "❌ Snapshot size exceeds 2MB.";
-                    return Json(new { response, model = modelUsed });
-                }
-
-                var extension = Path.GetExtension(snapshot.FileName).ToLower();
-                if (extension != ".jpg" && extension != ".jpeg")
-                {
-                    response = "❌ Invalid snapshot format. Only JPEG images are allowed.";
-                    return Json(new { response, model = modelUsed });
-                }
-
-                // Get the latest interview session
-                var session = _chatDbService.GetLatestSession(userId);
-                if (session == null || session.IsComplete)
-                {
-                    response = "❌ No active interview session found.";
-                    return Json(new { response, model = modelUsed });
-                }
-
-                // Save snapshot to file system
-                var folderPath = @"C:\Conversation\Snapshots";
-                if (!Directory.Exists(folderPath))
-                    Directory.CreateDirectory(folderPath);
-
-                var fileName = $"snapshot_{userId}_{DateTime.Now:yyyyMMdd_HHmmss}.jpg";
-                var filePath = Path.Combine(folderPath, fileName);
-
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await snapshot.CopyToAsync(stream);
-                }
-
-                // Save snapshot metadata to database
-                _chatDbService.SaveSnapshot(userId, session.Id, filePath);
-
-                response = "Snapshot uploaded successfully.";
-                return Json(new { response, model = modelUsed });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error processing snapshot upload.");
-                response = "❌ Error processing snapshot.";
-                return Json(new { response, model = "error" });
-            }
-        }
-
-        [HttpPost]
-        public IActionResult SetWebcamConsent([FromBody] WebcamConsentModel model)
-        {
-            HttpContext.Session.SetString("WebcamConsent", model.Consent);
-            return Ok();
-        }
-
-        public class WebcamConsentModel
-        {
-            public string Consent { get; set; }
         }
     }
 }

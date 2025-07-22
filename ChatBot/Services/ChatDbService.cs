@@ -291,146 +291,6 @@ namespace ChatBot.Services
         //    }
         //}
 
-        //public void SaveFullConversation(string userId, string name, string phone, string email, List<ChatMessage> messages)
-        //{
-        //    try
-        //    {
-        //        if (messages == null || messages.Count == 0)
-        //            return;
-
-        //        var sb = new System.Text.StringBuilder();
-        //        var now = DateTime.Now;
-        //        var sessionStartTimeKey = $"SessionStartTime_{userId}";
-        //        var sessionFileNameKey = $"SessionFileName_{userId}";
-        //        var folderPath = @"C:\Conversation";
-
-        //        // Ensure folder exists
-        //        if (!Directory.Exists(folderPath))
-        //            Directory.CreateDirectory(folderPath);
-
-        //        // Check for new session (30-minute timeout)
-        //        var sessionStartTimeStr = _httpContextAccessor.HttpContext?.Session.GetString(sessionStartTimeKey);
-        //        DateTime sessionStartTime;
-        //        bool isNewSession = string.IsNullOrEmpty(sessionStartTimeStr) ||
-        //                            !DateTime.TryParse(sessionStartTimeStr, out sessionStartTime) ||
-        //                            (now - sessionStartTime).TotalMinutes >= 30;
-
-        //        // Determine base file names
-        //        var defaultFileName = $"session_{userId}.txt";
-        //        string userFileName = null;
-        //        if (!string.IsNullOrEmpty(name) && (!string.IsNullOrEmpty(phone) || !string.IsNullOrEmpty(email)))
-        //        {
-        //            var identifier = !string.IsNullOrEmpty(phone) ? phone.Replace("+", "").Replace(" ", "") : email.Replace("@", "_").Replace(".", "_");
-        //            userFileName = $"{name}_{identifier}.txt";
-        //        }
-
-        //        var sessionFileName = _httpContextAccessor.HttpContext?.Session.GetString(sessionFileNameKey);
-        //        if (string.IsNullOrEmpty(sessionFileName))
-        //        {
-        //            sessionFileName = string.IsNullOrEmpty(userFileName) ? defaultFileName : userFileName;
-        //            _httpContextAccessor.HttpContext?.Session.SetString(sessionFileNameKey, sessionFileName);
-        //        }
-
-        //        var finalFilePath = Path.Combine(folderPath, sessionFileName);
-
-        //        // Migrate default content to user-based file if needed
-        //        if (!string.IsNullOrEmpty(userFileName) && sessionFileName == defaultFileName && userFileName != defaultFileName)
-        //        {
-        //            var defaultFilePath = Path.Combine(folderPath, defaultFileName);
-        //            if (File.Exists(defaultFilePath))
-        //            {
-        //                sb.Append(File.ReadAllText(defaultFilePath));
-        //                File.Delete(defaultFilePath);
-        //            }
-
-        //            sessionFileName = userFileName;
-        //            _httpContextAccessor.HttpContext?.Session.SetString(sessionFileNameKey, sessionFileName);
-        //            finalFilePath = Path.Combine(folderPath, sessionFileName);
-        //        }
-
-        //        // Write session header if needed
-        //        if (isNewSession && (string.IsNullOrEmpty(sessionStartTimeStr) || sb.Length == 0))
-        //        {
-        //            sb.AppendLine($"=============================");
-        //            sb.AppendLine($"🕒 Session on {now:yyyy-MM-dd HH:mm:ss}");
-        //            sb.AppendLine($"=============================");
-        //            sb.AppendLine();
-        //            _httpContextAccessor.HttpContext?.Session.SetString(sessionStartTimeKey, now.ToString("o"));
-        //        }
-
-        //        // Check if interview complete
-        //        bool isInterviewComplete = messages.Any(m => m.BotResponse.Contains("Thank you for completing the interview"));
-
-        //        foreach (var msg in messages)
-        //        {
-        //            sb.AppendLine($"🕒 {msg.CreatedAt:yyyy-MM-dd HH:mm:ss}");
-        //            sb.AppendLine($"👤 User: {msg.UserMessage}");
-        //            sb.AppendLine($"🤖 Bot : {msg.BotResponse}");
-        //            sb.AppendLine();
-        //        }
-
-        //        //var session = GetLatestSession(userId);
-        //        //if (isInterviewComplete && session != null)
-        //        //{
-        //        //    sb.AppendLine($"🔄 Tab Switch Count: {session.TabSwitchCount}");
-        //        //}
-        //        //else if (session == null)
-        //        //{
-        //        //    sb.AppendLine("🔄 No interview session found.");
-        //        //}
-
-        //        var session = GetLatestSession(userId);
-        //        if (isInterviewComplete && session != null)
-        //        {
-        //            sb.AppendLine($"🔄 Tab Switch Count: {session.TabSwitchCount}");
-        //        }
-        //        else if (isInterviewComplete && session == null)
-        //        {
-        //            sb.AppendLine("🔄 No interview session found.");
-        //        }
-
-
-        //        string conversationText = sb.ToString();
-
-        //        // Save to database
-        //        using var conn = new SqlConnection(_connectionString);
-        //        conn.Open();
-        //        using var transaction = conn.BeginTransaction();
-        //        try
-        //        {
-        //            var cmd = new SqlCommand(@"
-        //        INSERT INTO ChatMessages (UserId, Name, Phone, Email, ConversationText, CreatedAt)
-        //        VALUES (@UserId, @Name, @Phone, @Email, @Text, @CreatedAt)", conn, transaction);
-
-        //            cmd.Parameters.AddWithValue("@UserId", userId ?? "");
-        //            cmd.Parameters.AddWithValue("@Name", name ?? "");
-        //            cmd.Parameters.AddWithValue("@Phone", phone ?? "");
-        //            cmd.Parameters.AddWithValue("@Email", email ?? "");
-        //            cmd.Parameters.AddWithValue("@Text", conversationText);
-        //            cmd.Parameters.AddWithValue("@CreatedAt", now);
-        //            cmd.ExecuteNonQuery();
-
-        //            transaction.Commit();
-        //        }
-        //        catch
-        //        {
-        //            transaction.Rollback();
-        //            throw;
-        //        }
-
-        //        // Save to file
-        //        lock (new object())
-        //        {
-        //            File.AppendAllText(finalFilePath, conversationText);
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Console.WriteLine("❌ SaveFullConversation error: " + ex.Message);
-        //        File.WriteAllText(Path.Combine(@"C:\Conversation", "error.txt"), ex.ToString());
-        //    }
-        //}
-
         public void SaveFullConversation(string userId, string name, string phone, string email, List<ChatMessage> messages)
         {
             try
@@ -509,50 +369,32 @@ namespace ChatBot.Services
                     sb.AppendLine();
                 }
 
-                // Open database connection once
-                using var conn = new SqlConnection(_connectionString);
-                conn.Open();
+                //var session = GetLatestSession(userId);
+                //if (isInterviewComplete && session != null)
+                //{
+                //    sb.AppendLine($"🔄 Tab Switch Count: {session.TabSwitchCount}");
+                //}
+                //else if (session == null)
+                //{
+                //    sb.AppendLine("🔄 No interview session found.");
+                //}
 
-                // Append tab switch count and snapshot information
                 var session = GetLatestSession(userId);
                 if (isInterviewComplete && session != null)
                 {
                     sb.AppendLine($"🔄 Tab Switch Count: {session.TabSwitchCount}");
-
-                    // Fetch and append snapshot paths
-                    var cmd = new SqlCommand(@"
-                SELECT SnapshotPath, CreatedAt FROM InterviewSnapshots 
-                WHERE SessionId = @SessionId", conn);
-                    cmd.Parameters.AddWithValue("@SessionId", session.Id);
-                    using var reader = cmd.ExecuteReader();
-                    var snapshots = new List<(string Path, DateTime CreatedAt)>();
-                    while (reader.Read())
-                    {
-                        snapshots.Add(((string)reader["SnapshotPath"], (DateTime)reader["CreatedAt"]));
-                    }
-                    reader.Close(); // Explicitly close the reader
-
-                    if (snapshots.Any())
-                    {
-                        sb.AppendLine($"📸 Snapshots Captured:");
-                        foreach (var snapshot in snapshots)
-                        {
-                            sb.AppendLine($"  - {snapshot.Path} at {snapshot.CreatedAt:yyyy-MM-dd HH:mm:ss}");
-                        }
-                    }
-                    else
-                    {
-                        sb.AppendLine($"📸 No snapshots captured.");
-                    }
                 }
                 else if (isInterviewComplete && session == null)
                 {
                     sb.AppendLine("🔄 No interview session found.");
                 }
 
+
                 string conversationText = sb.ToString();
 
                 // Save to database
+                using var conn = new SqlConnection(_connectionString);
+                conn.Open();
                 using var transaction = conn.BeginTransaction();
                 try
                 {
@@ -587,23 +429,6 @@ namespace ChatBot.Services
                 Console.WriteLine("❌ SaveFullConversation error: " + ex.Message);
                 File.WriteAllText(Path.Combine(@"C:\Conversation", "error.txt"), ex.ToString());
             }
-        }
-
-        public void SaveSnapshot(string userId, int sessionId, string snapshotPath)
-        {
-            using var conn = new SqlConnection(_connectionString);
-            conn.Open();
-
-            var cmd = new SqlCommand(@"
-        INSERT INTO InterviewSnapshots (UserId, SessionId, SnapshotPath, CreatedAt)
-        VALUES (@UserId, @SessionId, @SnapshotPath, @CreatedAt)", conn);
-
-            cmd.Parameters.AddWithValue("@UserId", userId);
-            cmd.Parameters.AddWithValue("@SessionId", sessionId);
-            cmd.Parameters.AddWithValue("@SnapshotPath", snapshotPath);
-            cmd.Parameters.AddWithValue("@CreatedAt", DateTime.Now);
-
-            cmd.ExecuteNonQuery();
         }
 
     }

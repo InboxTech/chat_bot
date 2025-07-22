@@ -3,8 +3,8 @@
   "WorkspaceRootPath": "C:\\Users\\INBOX001\\source\\repos\\ChatBot\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{951C658F-297D-486C-BFEA-406077BF5CE9}|ChatBot\\ChatBot.csproj|c:\\users\\inbox001\\source\\repos\\chatbot\\chatbot\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
-      "RelativeMoniker": "D:0:0:{951C658F-297D-486C-BFEA-406077BF5CE9}|ChatBot\\ChatBot.csproj|solutionrelative:chatbot\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+      "AbsoluteMoniker": "D:0:0:{951C658F-297D-486C-BFEA-406077BF5CE9}|ChatBot\\ChatBot.csproj|c:\\users\\inbox001\\source\\repos\\chatbot\\chatbot\\services\\chatdbservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{951C658F-297D-486C-BFEA-406077BF5CE9}|ChatBot\\ChatBot.csproj|solutionrelative:chatbot\\services\\chatdbservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{951C658F-297D-486C-BFEA-406077BF5CE9}|ChatBot\\ChatBot.csproj|c:\\users\\inbox001\\source\\repos\\chatbot\\chatbot\\services\\chatgptservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -15,36 +15,36 @@
       "RelativeMoniker": "D:0:0:{951C658F-297D-486C-BFEA-406077BF5CE9}|ChatBot\\ChatBot.csproj|solutionrelative:chatbot\\controllers\\chatcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{951C658F-297D-486C-BFEA-406077BF5CE9}|ChatBot\\ChatBot.csproj|c:\\users\\inbox001\\source\\repos\\chatbot\\chatbot\\wwwroot\\scraped_content.txt||{8B382828-6202-11D1-8870-0000F87579D2}",
-      "RelativeMoniker": "D:0:0:{951C658F-297D-486C-BFEA-406077BF5CE9}|ChatBot\\ChatBot.csproj|solutionrelative:chatbot\\wwwroot\\scraped_content.txt||{8B382828-6202-11D1-8870-0000F87579D2}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{951C658F-297D-486C-BFEA-406077BF5CE9}|ChatBot\\ChatBot.csproj|c:\\users\\inbox001\\source\\repos\\chatbot\\chatbot\\views\\chat\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
       "RelativeMoniker": "D:0:0:{951C658F-297D-486C-BFEA-406077BF5CE9}|ChatBot\\ChatBot.csproj|solutionrelative:chatbot\\views\\chat\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{951C658F-297D-486C-BFEA-406077BF5CE9}|ChatBot\\ChatBot.csproj|c:\\users\\inbox001\\source\\repos\\chatbot\\chatbot\\models\\interviewsession.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{951C658F-297D-486C-BFEA-406077BF5CE9}|ChatBot\\ChatBot.csproj|solutionrelative:chatbot\\models\\interviewsession.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{951C658F-297D-486C-BFEA-406077BF5CE9}|ChatBot\\ChatBot.csproj|c:\\users\\inbox001\\source\\repos\\chatbot\\chatbot\\services\\scraperhostedservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{951C658F-297D-486C-BFEA-406077BF5CE9}|ChatBot\\ChatBot.csproj|solutionrelative:chatbot\\services\\scraperhostedservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{951C658F-297D-486C-BFEA-406077BF5CE9}|ChatBot\\ChatBot.csproj|c:\\users\\inbox001\\source\\repos\\chatbot\\chatbot\\services\\chatdbservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{951C658F-297D-486C-BFEA-406077BF5CE9}|ChatBot\\ChatBot.csproj|solutionrelative:chatbot\\services\\chatdbservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{951C658F-297D-486C-BFEA-406077BF5CE9}|ChatBot\\ChatBot.csproj|c:\\users\\inbox001\\source\\repos\\chatbot\\chatbot\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{951C658F-297D-486C-BFEA-406077BF5CE9}|ChatBot\\ChatBot.csproj|solutionrelative:chatbot\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{951C658F-297D-486C-BFEA-406077BF5CE9}|ChatBot\\ChatBot.csproj|c:\\users\\inbox001\\source\\repos\\chatbot\\chatbot\\wwwroot\\scraped_content.txt||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{951C658F-297D-486C-BFEA-406077BF5CE9}|ChatBot\\ChatBot.csproj|solutionrelative:chatbot\\wwwroot\\scraped_content.txt||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{951C658F-297D-486C-BFEA-406077BF5CE9}|ChatBot\\ChatBot.csproj|c:\\users\\inbox001\\source\\repos\\chatbot\\chatbot\\models\\userdetails.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{951C658F-297D-486C-BFEA-406077BF5CE9}|ChatBot\\ChatBot.csproj|solutionrelative:chatbot\\models\\userdetails.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{951C658F-297D-486C-BFEA-406077BF5CE9}|ChatBot\\ChatBot.csproj|c:\\users\\inbox001\\source\\repos\\chatbot\\chatbot\\wwwroot\\css\\site.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}",
       "RelativeMoniker": "D:0:0:{951C658F-297D-486C-BFEA-406077BF5CE9}|ChatBot\\ChatBot.csproj|solutionrelative:chatbot\\wwwroot\\css\\site.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{951C658F-297D-486C-BFEA-406077BF5CE9}|ChatBot\\ChatBot.csproj|c:\\users\\inbox001\\source\\repos\\chatbot\\chatbot\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{951C658F-297D-486C-BFEA-406077BF5CE9}|ChatBot\\ChatBot.csproj|solutionrelative:chatbot\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{951C658F-297D-486C-BFEA-406077BF5CE9}|ChatBot\\ChatBot.csproj|c:\\users\\inbox001\\source\\repos\\chatbot\\chatbot\\models\\interviewsession.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{951C658F-297D-486C-BFEA-406077BF5CE9}|ChatBot\\ChatBot.csproj|solutionrelative:chatbot\\models\\interviewsession.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{951C658F-297D-486C-BFEA-406077BF5CE9}|ChatBot\\ChatBot.csproj|c:\\users\\inbox001\\source\\repos\\chatbot\\chatbot\\models\\userdetails.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{951C658F-297D-486C-BFEA-406077BF5CE9}|ChatBot\\ChatBot.csproj|solutionrelative:chatbot\\models\\userdetails.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{951C658F-297D-486C-BFEA-406077BF5CE9}|ChatBot\\ChatBot.csproj|c:\\users\\inbox001\\source\\repos\\chatbot\\chatbot\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{951C658F-297D-486C-BFEA-406077BF5CE9}|ChatBot\\ChatBot.csproj|solutionrelative:chatbot\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -54,7 +54,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 10,
+          "SelectedChildIndex": 6,
           "Children": [
             {
               "$type": "Bookmark",
@@ -66,19 +66,20 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 7,
               "Title": "UserDetails.cs",
               "DocumentMoniker": "C:\\Users\\INBOX001\\source\\repos\\ChatBot\\ChatBot\\Models\\UserDetails.cs",
               "RelativeDocumentMoniker": "ChatBot\\Models\\UserDetails.cs",
               "ToolTip": "C:\\Users\\INBOX001\\source\\repos\\ChatBot\\ChatBot\\Models\\UserDetails.cs",
               "RelativeToolTip": "ChatBot\\Models\\UserDetails.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAMAAAAFAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAQAAAAqAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-07-17T12:35:12.787Z"
+              "WhenOpened": "2025-07-17T12:35:12.787Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 10,
               "Title": "Program.cs",
               "DocumentMoniker": "C:\\Users\\INBOX001\\source\\repos\\ChatBot\\ChatBot\\Program.cs",
               "RelativeDocumentMoniker": "ChatBot\\Program.cs",
@@ -90,7 +91,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 9,
               "Title": "InterviewSession.cs",
               "DocumentMoniker": "C:\\Users\\INBOX001\\source\\repos\\ChatBot\\ChatBot\\Models\\InterviewSession.cs",
               "RelativeDocumentMoniker": "ChatBot\\Models\\InterviewSession.cs",
@@ -98,8 +99,7 @@
               "RelativeToolTip": "ChatBot\\Models\\InterviewSession.cs",
               "ViewState": "AgIAAAoAAAAAAAAAAAA1wAoAAAAaAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-07-10T11:52:12.387Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-07-10T11:52:12.387Z"
             },
             {
               "$type": "Document",
@@ -109,19 +109,20 @@
               "RelativeDocumentMoniker": "ChatBot\\wwwroot\\css\\site.css",
               "ToolTip": "C:\\Users\\INBOX001\\source\\repos\\ChatBot\\ChatBot\\wwwroot\\css\\site.css",
               "RelativeToolTip": "ChatBot\\wwwroot\\css\\site.css",
-              "ViewState": "AgIAANEBAAAAAAAAAAAvwNMBAAASAAAAAAAAAA==",
+              "ViewState": "AgIAAAcDAAAAAAAAAAAAABADAAAFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003000|",
-              "WhenOpened": "2025-07-08T12:37:09.94Z"
+              "WhenOpened": "2025-07-08T12:37:09.94Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 0,
               "Title": "ChatDbService.cs",
               "DocumentMoniker": "C:\\Users\\INBOX001\\source\\repos\\ChatBot\\ChatBot\\Services\\ChatDbService.cs",
               "RelativeDocumentMoniker": "ChatBot\\Services\\ChatDbService.cs",
-              "ToolTip": "C:\\Users\\INBOX001\\source\\repos\\ChatBot\\ChatBot\\Services\\ChatDbService.cs",
-              "RelativeToolTip": "ChatBot\\Services\\ChatDbService.cs",
-              "ViewState": "AgIAAAcAAAAAAAAAAAAAACsBAAAAAAAAAAAAAA==",
+              "ToolTip": "C:\\Users\\INBOX001\\source\\repos\\ChatBot\\ChatBot\\Services\\ChatDbService.cs*",
+              "RelativeToolTip": "ChatBot\\Services\\ChatDbService.cs*",
+              "ViewState": "AgIAAJsBAAAAAAAAAAAowKQBAAAfAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-06-19T05:59:47.297Z",
               "EditorCaption": ""
@@ -132,9 +133,9 @@
               "Title": "ChatController.cs",
               "DocumentMoniker": "C:\\Users\\INBOX001\\source\\repos\\ChatBot\\ChatBot\\Controllers\\ChatController.cs",
               "RelativeDocumentMoniker": "ChatBot\\Controllers\\ChatController.cs",
-              "ToolTip": "C:\\Users\\INBOX001\\source\\repos\\ChatBot\\ChatBot\\Controllers\\ChatController.cs",
-              "RelativeToolTip": "ChatBot\\Controllers\\ChatController.cs",
-              "ViewState": "AgIAAHMAAAAAAAAAAAAawH4AAAB3AAAAAAAAAA==",
+              "ToolTip": "C:\\Users\\INBOX001\\source\\repos\\ChatBot\\ChatBot\\Controllers\\ChatController.cs*",
+              "RelativeToolTip": "ChatBot\\Controllers\\ChatController.cs*",
+              "ViewState": "AgIAAPwCAAAAAAAAAAAqwBIDAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-06-19T05:29:38.862Z",
               "EditorCaption": ""
@@ -145,16 +146,16 @@
               "Title": "ChatGPTService.cs",
               "DocumentMoniker": "C:\\Users\\INBOX001\\source\\repos\\ChatBot\\ChatBot\\Services\\ChatGPTService.cs",
               "RelativeDocumentMoniker": "ChatBot\\Services\\ChatGPTService.cs",
-              "ToolTip": "C:\\Users\\INBOX001\\source\\repos\\ChatBot\\ChatBot\\Services\\ChatGPTService.cs",
-              "RelativeToolTip": "ChatBot\\Services\\ChatGPTService.cs",
-              "ViewState": "AgIAADADAAAAAAAAAAAqwDUDAAAAAAAAAAAAAA==",
+              "ToolTip": "C:\\Users\\INBOX001\\source\\repos\\ChatBot\\ChatBot\\Services\\ChatGPTService.cs*",
+              "RelativeToolTip": "ChatBot\\Services\\ChatGPTService.cs*",
+              "ViewState": "AgIAAC8DAAAAAAAAAAA5wEYDAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-06-19T05:59:34.06Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 4,
               "Title": "ScraperHostedService.cs",
               "DocumentMoniker": "C:\\Users\\INBOX001\\source\\repos\\ChatBot\\ChatBot\\Services\\ScraperHostedService.cs",
               "RelativeDocumentMoniker": "ChatBot\\Services\\ScraperHostedService.cs",
@@ -167,20 +168,20 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 5,
               "Title": "appsettings.json",
               "DocumentMoniker": "C:\\Users\\INBOX001\\source\\repos\\ChatBot\\ChatBot\\appsettings.json",
               "RelativeDocumentMoniker": "ChatBot\\appsettings.json",
               "ToolTip": "C:\\Users\\INBOX001\\source\\repos\\ChatBot\\ChatBot\\appsettings.json",
               "RelativeToolTip": "ChatBot\\appsettings.json",
-              "ViewState": "AgIAAGYAAAAAAAAAAAAAAGwAAAAqAAAAAAAAAA==",
+              "ViewState": "AgIAABIAAAAAAAAAAAAAACkAAAAcAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
               "WhenOpened": "2025-06-19T06:27:16.877Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 6,
               "Title": "scraped_content.txt",
               "DocumentMoniker": "C:\\Users\\INBOX001\\source\\repos\\ChatBot\\ChatBot\\wwwroot\\scraped_content.txt",
               "RelativeDocumentMoniker": "ChatBot\\wwwroot\\scraped_content.txt",
@@ -193,13 +194,13 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 3,
               "Title": "Index.cshtml",
               "DocumentMoniker": "C:\\Users\\INBOX001\\source\\repos\\ChatBot\\ChatBot\\Views\\Chat\\Index.cshtml",
               "RelativeDocumentMoniker": "ChatBot\\Views\\Chat\\Index.cshtml",
-              "ToolTip": "C:\\Users\\INBOX001\\source\\repos\\ChatBot\\ChatBot\\Views\\Chat\\Index.cshtml",
-              "RelativeToolTip": "ChatBot\\Views\\Chat\\Index.cshtml",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAEwAAAAnAAAAAAAAAA==",
+              "ToolTip": "C:\\Users\\INBOX001\\source\\repos\\ChatBot\\ChatBot\\Views\\Chat\\Index.cshtml*",
+              "RelativeToolTip": "ChatBot\\Views\\Chat\\Index.cshtml*",
+              "ViewState": "AgIAAOQBAAAAAAAAAAAqwPoBAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
               "WhenOpened": "2025-06-19T06:00:07.434Z",
               "EditorCaption": ""
