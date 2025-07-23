@@ -65,6 +65,7 @@ namespace ChatBot.Controllers
             string userId = HttpContext.Session.Id;
             string response = "";
             string modelUsed = "custom";
+            bool startInterview = false; // Flag to indicate interview start
 
             var message = new ChatMessage
             {
@@ -77,7 +78,6 @@ namespace ChatBot.Controllers
                 : new List<ChatMessage>();
             var userIdentity = HttpContext.Session.GetString("UserIdentity");
 
-            // Declare userDetails and userDetailsStr once at method scope
             UserDetails userDetails = null;
             string userDetailsStr = HttpContext.Session.GetString("UserDetails");
 
@@ -91,7 +91,6 @@ namespace ChatBot.Controllers
 
             try
             {
-                // Helper method to extract name from input
                 string ExtractName(string input)
                 {
                     input = input.Trim();
@@ -113,7 +112,6 @@ namespace ChatBot.Controllers
                     return input;
                 }
 
-                // Helper method to clear application-related session data
                 void ClearApplicationState()
                 {
                     HttpContext.Session.Remove("ApplicationState");
@@ -123,7 +121,6 @@ namespace ChatBot.Controllers
                     HttpContext.Session.Remove("ResumeContent");
                 }
 
-                // Helper method to save and clear session messages
                 void SaveAndClearSessionMessages(string name = null, string phone = null, string email = null, bool finalizeIdentity = false)
                 {
                     if (sessionMessages.Count > 0)
@@ -195,7 +192,6 @@ namespace ChatBot.Controllers
                     return resp + (string.IsNullOrEmpty(followUpPrompt) ? "" : $"\n\n{followUpPrompt}");
                 }
 
-                // Check for cancel/restart intent
                 if (Regex.IsMatch(msg, @"\b(cancel|stop|quit|restart|start over)\b", RegexOptions.IgnoreCase))
                 {
                     _logger.LogInformation("Cancel/restart intent detected.");
@@ -205,10 +201,9 @@ namespace ChatBot.Controllers
                     _chatDbService.SaveMessage(message);
                     SaveAndClearSessionMessages(userDetails?.Name, userDetails?.Phone, userDetails?.Email, true);
                     ClearApplicationState();
-                    return Json(new { response = message.BotResponse, model = modelUsed });
+                    return Json(new { response = message.BotResponse, model = modelUsed, startInterview = false });
                 }
 
-                // Check for resume upload intent
                 if (Regex.IsMatch(msg, @"\b(resume|cv|upload resume|upload cv|attach resume|attach cv)\b", RegexOptions.IgnoreCase))
                 {
                     _logger.LogInformation("Resume upload intent detected.");
@@ -216,18 +211,15 @@ namespace ChatBot.Controllers
                     message.BotResponse = response;
                     sessionMessages.Add(message);
                     _chatDbService.SaveMessage(message);
-                    return Json(new { response, model = modelUsed });
+                    return Json(new { response, model = modelUsed, startInterview = false });
                 }
 
-                // Step 1: Greeting
                 if (Regex.IsMatch(msg, @"\b(hi|hello|hey)\b", RegexOptions.IgnoreCase))
                 {
                     _logger.LogInformation("Greeting intent detected.");
                     ClearApplicationState();
                     response = "👋 Hello! I’m the official company chatbot. How can I assist you today? Ask about our services, products, job openings, or upload your resume to find suitable jobs!";
                 }
-
-                // Step 2: Continue ongoing interview
                 else if (_chatDbService.GetLatestSession(userId) is InterviewSession session && !session.IsComplete && session.QuestionIndex < session.Questions.Count)
                 {
                     _logger.LogInformation($"Continuing interview for {session.JobTitle}, question {session.QuestionIndex + 1}.");
@@ -260,14 +252,12 @@ namespace ChatBot.Controllers
                             _chatDbService.UpdateInterviewSession(session);
                             SaveAndClearSessionMessages(userDetails?.Name, userDetails?.Phone, userDetails?.Email, true);
                             ClearApplicationState();
-                            return Json(new { response, model = modelUsed });
+                            return Json(new { response, model = modelUsed, startInterview = false });
                         }
 
                         _chatDbService.UpdateInterviewSession(session);
                     }
                 }
-
-                // Step 3: Handle user details collection for job application
                 else if (HttpContext.Session.GetString("ApplicationState") is string appState)
                 {
                     userDetails = userDetailsStr is not null
@@ -283,10 +273,9 @@ namespace ChatBot.Controllers
                         sessionMessages.Add(message);
                         _chatDbService.SaveMessage(message);
                         SaveAndClearSessionMessages(userDetails?.Name, userDetails?.Phone, userDetails?.Email, true);
-                        return Json(new { response, model = modelUsed });
+                        return Json(new { response, model = modelUsed, startInterview = false });
                     }
 
-                    // Handle backtracking
                     if (Regex.IsMatch(msg, @"\b(back|previous|go back|change)\b", RegexOptions.IgnoreCase))
                     {
                         _logger.LogInformation($"Backtracking from {appState}.");
@@ -304,13 +293,11 @@ namespace ChatBot.Controllers
                         }
                         HttpContext.Session.SetString("UserDetails", JsonConvert.SerializeObject(userDetails));
                     }
-                    // Handle company-related queries during application
                     else if (_chatGPTService.IsCompanyRelated(msg))
                     {
                         _logger.LogInformation($"Company-related intent detected during {appState}.");
                         response = await HandleCompanyQuery(msg, currentQuestion.Prompt);
                     }
-                    // Handle phone/email correction
                     else if (appState == "AwaitingEmail" && Regex.IsMatch(msg, @"\b(phone|mobile|number)\b", RegexOptions.IgnoreCase))
                     {
                         var contactQuestion = _preInterviewQuestions.FirstOrDefault(q => q.State == "AwaitingContact");
@@ -322,7 +309,6 @@ namespace ChatBot.Controllers
                             response = contactQuestion.Prompt;
                         }
                     }
-                    // Normal flow with validations
                     else
                     {
                         if (appState == "AwaitingName")
@@ -381,61 +367,6 @@ namespace ChatBot.Controllers
                                 }
                             }
                         }
-                        //else if (appState == "AwaitingInterviewStart")
-                        //{
-                        //    if (Regex.IsMatch(msg, @"\b(yes|yep|yepp|yeah|sure|start)\b", RegexOptions.IgnoreCase))
-                        //    {
-                        //        var selectedJob = HttpContext.Session.GetString("SelectedJob") ?? "";
-                        //        if (!string.IsNullOrEmpty(selectedJob))
-                        //        {
-                        //            var (questions, interviewModel) = await _chatGPTService.GenerateRandomInterviewQuestionsWithModelAsync(selectedJob, 5);
-                        //            var newSession = new InterviewSession
-                        //            {
-                        //                UserId = userId,
-                        //                JobTitle = selectedJob,
-                        //                Questions = questions,
-                        //                QuestionIndex = 0,
-                        //                IsComplete = false,
-                        //                TabSwitchCount = 0
-                        //            };
-                        //            _chatDbService.SaveInterviewSession(newSession);
-                        //            response = $"🧪 Starting interview for {selectedJob}.\n❓ Question 1: {questions[0]}";
-                        //            modelUsed = interviewModel;
-                        //            message.BotResponse = response;
-                        //            sessionMessages.Add(message);
-                        //            _chatDbService.SaveMessage(message);
-                        //            SaveAndClearSessionMessages(userDetails?.Name, userDetails?.Phone, userDetails?.Email, true);
-                        //            ClearApplicationState();
-                        //            return Json(new { response, model = modelUsed });
-                        //        }
-                        //        else
-                        //        {
-                        //            response = "❌ No job selected. Please start the application process again or upload your resume to find suitable jobs.";
-                        //            message.BotResponse = response;
-                        //            sessionMessages.Add(message);
-                        //            _chatDbService.SaveMessage(message);
-                        //            SaveAndClearSessionMessages(userDetails?.Name, userDetails?.Phone, userDetails?.Email, true);
-                        //            ClearApplicationState();
-                        //            return Json(new { response, model = modelUsed });
-                        //        }
-                        //    }
-                        //    else if (Regex.IsMatch(msg, @"\b(no|nope|nah|don't)\b", RegexOptions.IgnoreCase))
-                        //    {
-                        //        response = "Okay, the interview will not start. How can I assist you now? To apply for another job, let me know you're interested in job openings or upload your resume.";
-                        //        message.BotResponse = response;
-                        //        sessionMessages.Add(message);
-                        //        _chatDbService.SaveMessage(message);
-                        //        SaveAndClearSessionMessages(userDetails?.Name, userDetails?.Phone, userDetails?.Email, true);
-                        //        ClearApplicationState();
-                        //        return Json(new { response, model = modelUsed });
-                        //    }
-                        //    else
-                        //    {
-                        //        response = currentQuestion.ErrorMessage;
-                        //    }
-                        //}
-
-                        // In the AwaitingInterviewStart state handling
                         else if (appState == "AwaitingInterviewStart")
                         {
                             if (Regex.IsMatch(msg, @"\b(yes|yep|yepp|yeah|sure|start)\b", RegexOptions.IgnoreCase))
@@ -456,12 +387,13 @@ namespace ChatBot.Controllers
                                     _chatDbService.SaveInterviewSession(newSession);
                                     response = $"🧪 Starting interview for {selectedJob}.\n❓ Question 1: {questions[0]}";
                                     modelUsed = interviewModel;
+                                    startInterview = true; // Signal interview start
                                     message.BotResponse = response;
                                     sessionMessages.Add(message);
                                     _chatDbService.SaveMessage(message);
                                     SaveAndClearSessionMessages(userDetails?.Name, userDetails?.Phone, userDetails?.Email, true);
                                     ClearApplicationState();
-                                    return Json(new { response, model = modelUsed });
+                                    return Json(new { response, model = modelUsed, startInterview });
                                 }
                                 else
                                 {
@@ -471,7 +403,7 @@ namespace ChatBot.Controllers
                                     _chatDbService.SaveMessage(message);
                                     SaveAndClearSessionMessages(userDetails?.Name, userDetails?.Phone, userDetails?.Email, true);
                                     ClearApplicationState();
-                                    return Json(new { response, model = modelUsed });
+                                    return Json(new { response, model = modelUsed, startInterview = false });
                                 }
                             }
                             else if (Regex.IsMatch(msg, @"\b(no|nope|nah|don't)\b", RegexOptions.IgnoreCase))
@@ -482,7 +414,7 @@ namespace ChatBot.Controllers
                                 _chatDbService.SaveMessage(message);
                                 SaveAndClearSessionMessages(userDetails?.Name, userDetails?.Phone, userDetails?.Email, true);
                                 ClearApplicationState();
-                                return Json(new { response, model = modelUsed });
+                                return Json(new { response, model = modelUsed, startInterview = false });
                             }
                             else
                             {
@@ -524,8 +456,6 @@ namespace ChatBot.Controllers
 
                     HttpContext.Session.SetString("UserDetails", JsonConvert.SerializeObject(userDetails));
                 }
-
-                // Step 4: Handle job selection
                 else if (HttpContext.Session.GetString("JobList") is string jobListStr && !string.IsNullOrWhiteSpace(jobListStr))
                 {
                     var jobList = jobListStr.Split("||").ToList();
@@ -552,49 +482,6 @@ namespace ChatBot.Controllers
                         response = await HandleCompanyQuery(msg, "Please reply with the job title or number you'd like to apply for, or upload your resume to find suitable jobs.");
                     }
                 }
-
-                //// Step 5: Detect job intent
-                //else if (await _chatGPTService.IsJobIntentAsync(msg))
-                //{
-                //    _logger.LogInformation("Job intent detected.");
-                //    var (jobList, jobModel) = await _chatGPTService.GetJobOpeningsAsync();
-                //    modelUsed = jobModel;
-
-                //    if (jobList.Count > 0)
-                //    {
-                //        response = "🧑‍💻 Current job openings:\n";
-                //        for (int i = 0; i < jobList.Count; i++)
-                //            response += $"{i + 1}. {jobList[i]}\n";
-
-                //        response += "\nPlease reply with the job title or number you'd like to apply for, or upload your resume to find suitable jobs.";
-                //        HttpContext.Session.SetString("JobList", string.Join("||", jobList));
-                //    }
-                //    else
-                //    {
-                //        response = "❌ Sorry, no job openings found at the moment. You can upload your resume to check for matching jobs.";
-                //        _logger.LogWarning("No job openings available or API returned empty list.");
-                //    }
-                //}
-
-                //// Step 6: Handle location-related queries
-                //else if (await _chatGPTService.IsLocationIntentAsync(msg) || _chatGPTService.IsLocationRelated(msg))
-                //{
-                //    _logger.LogInformation("Location-related intent detected.");
-                //    var (resp, model) = await _chatGPTService.GetSmartResponseAsync(msg);
-                //    modelUsed = model;
-                //    response = resp;
-                //}
-
-                //// Step 7: Handle company-related queries
-                //else if (_chatGPTService.IsCompanyRelated(msg))
-                //{
-                //    _logger.LogInformation("Company-related intent detected.");
-                //    HttpContext.Session.Remove("JobList");
-                //    HttpContext.Session.Remove("ApplicationState");
-                //    response = await HandleCompanyQuery(msg);
-                //}
-
-                // Step 5: Detect job intent
                 else if (await _chatGPTService.IsJobIntentAsync(msg))
                 {
                     _logger.LogInformation("Job intent detected for query: {msg}. Fetching job openings.", msg);
@@ -617,7 +504,6 @@ namespace ChatBot.Controllers
                         _logger.LogWarning("No job openings available or API returned empty list.");
                     }
                 }
-                // Step 6: Handle location-related queries
                 else if (await _chatGPTService.IsLocationIntentAsync(msg) || _chatGPTService.IsLocationRelated(msg))
                 {
                     _logger.LogInformation("Location-related intent detected for query: {msg}.", msg);
@@ -625,7 +511,6 @@ namespace ChatBot.Controllers
                     modelUsed = model;
                     response = resp;
                 }
-                // Step 7: Handle company-related queries
                 else if (_chatGPTService.IsCompanyRelated(msg))
                 {
                     _logger.LogInformation("Company-related intent detected for query: {msg}.", msg);
@@ -633,8 +518,6 @@ namespace ChatBot.Controllers
                     HttpContext.Session.Remove("ApplicationState");
                     response = await HandleCompanyQuery(msg);
                 }
-
-                // Step 8: Fallback to AI-based response
                 else
                 {
                     _logger.LogWarning($"No specific intent detected for query: {msg}. Attempting to process with GetSmartResponseAsync.");
@@ -651,7 +534,7 @@ namespace ChatBot.Controllers
                 userDetails = userDetailsStr is not null ? JsonConvert.DeserializeObject<UserDetails>(userDetailsStr) : null;
                 SaveAndClearSessionMessages(userDetails?.Name, userDetails?.Phone, userDetails?.Email, true);
 
-                return Json(new { response, model = modelUsed });
+                return Json(new { response, model = modelUsed, startInterview });
             }
             catch (Exception ex)
             {
@@ -662,7 +545,7 @@ namespace ChatBot.Controllers
                 sessionMessages.Add(message);
                 HttpContext.Session.SetString("SessionMessages", JsonConvert.SerializeObject(sessionMessages));
                 _chatDbService.SaveMessage(message);
-                return Json(new { response, model = modelUsed });
+                return Json(new { response, model = modelUsed, startInterview = false });
             }
         }
 

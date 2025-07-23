@@ -66,10 +66,69 @@
             position: relative;
             animation: slideIn 0.5s ease-out;
         }
+
+        .webcam-container {
+            display: none;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 320px;
+            max-width: 100%;
+            background: var(--gray-900);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-lg);
+            padding: 10px;
+            z-index: 1000;
+        }
+
+            .webcam-container.active {
+                display: block;
+            }
+
+        .webcam-video {
+            width: 100%;
+            border-radius: var(--border-radius);
+            background: black;
+        }
+
+        .webcam-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .webcam-btn {
+            background: var(--primary-color);
+            color: var(--white);
+            border: none;
+            padding: 8px 16px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+
+            .webcam-btn:hover {
+                background: var(--primary-dark);
+            }
+
+            .webcam-btn:disabled {
+                background: var(--gray-400);
+                cursor: not-allowed;
+            }
     </style>
 }
 
 <div class="chat-container">
+    <!-- Webcam Container -->
+    <div class="webcam-container" id="webcamContainer">
+        <video class="webcam-video" id="webcamVideo" autoplay muted></video>
+        <div class="webcam-controls">
+            <button class="webcam-btn" id="stopWebcamButton" onclick="stopWebcam()" disabled>Stop Webcam</button>
+        </div>
+    </div>
+
     <!-- Header -->
     <div class="chat-header">
         <div class="header-left">
@@ -81,11 +140,6 @@
                 <p>Your intelligent company assistant</p>
             </div>
         </div>
-        @*  <div class="header-actions">
-            <button class="header-btn" title="Clear Chat" onclick="clearChat()">
-                <i class="fas fa-trash"></i>
-            </button>
-        </div> *@
     </div>
 
     <!-- Quick Actions -->
@@ -126,11 +180,6 @@
                 <h2 class="welcome-title">Welcome to Inbox-Infotech AI</h2>
                 <p class="welcome-subtitle">I'm here to help you with information about our company, services, products, or job openings. You can also upload your resume to find matching opportunities!</p>
                 <div class="welcome-suggestions">
-                    @* <div class="suggestion-card" onclick="sendQuickMessage('What services do you offer?')">
-                        <div class="suggestion-icon"><i class="fas fa-cogs"></i></div>
-                        <div class="suggestion-title">Our Services</div>
-                        <div class="suggestion-desc">Explore our comprehensive range of professional services</div>
-                    </div> *@
                     <div class="suggestion-card" onclick="sendQuickMessage('Tell me about your products')">
                         <div class="suggestion-icon"><i class="fas fa-box"></i></div>
                         <div class="suggestion-title">Our Products</div>
@@ -182,6 +231,7 @@
     </div>
 </div>
 
+<!-- Only showing the updated Scripts section for brevity -->
 @section Scripts {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
@@ -189,6 +239,9 @@
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         let recognition = null;
         let isRecording = false;
+        let webcamStream = null;
+        let isWebcamActive = false; // Track webcam status
+        let isInterviewActive = false; // Track interview state
 
         if (SpeechRecognition) {
             recognition = new SpeechRecognition();
@@ -231,25 +284,58 @@
             };
         }
 
-        // Start/Stop Speech Recognition
-        function startSpeechRecognition() {
-            if (!SpeechRecognition) {
-                alert('Speech recognition is not supported in this browser.');
+        // Webcam handling
+        async function startWebcam() {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                alert('Webcam is not supported in this browser.');
+                appendWebcamErrorMessage();
                 return;
             }
 
-            if (isRecording) {
-                recognition.stop();
-                isRecording = false;
-                const micButton = document.getElementById('micButton');
-                micButton.classList.remove('recording');
-                micButton.title = 'Start Speech Recognition';
-            } else {
-                recognition.start();
-                isRecording = true;
-                const micButton = document.getElementById('micButton');
-                micButton.classList.add('recording');
-                micButton.title = 'Stop Speech Recognition';
+            try {
+                webcamStream = await navigator.mediaDevices.getUserMedia({ video: true });
+                const videoElement = document.getElementById('webcamVideo');
+                const webcamContainer = document.getElementById('webcamContainer');
+                const stopButton = document.getElementById('stopWebcamButton');
+
+                videoElement.srcObject = webcamStream;
+                webcamContainer.classList.add('active');
+                stopButton.disabled = false;
+                isWebcamActive = true; // Set webcam status to active
+            } catch (error) {
+                console.error('Error accessing webcam:', error);
+                appendWebcamErrorMessage();
+                isWebcamActive = false;
+            }
+        }
+
+        function appendWebcamErrorMessage() {
+            const messagesList = document.getElementById('messagesList');
+            const typingIndicator = document.getElementById('typingIndicator');
+            const errorMessageDiv = document.createElement('div');
+            errorMessageDiv.className = 'message bot';
+            errorMessageDiv.innerHTML = `
+                <div class="message-avatar"><i class="fas fa-robot"></i></div>
+                <div class="message-content">
+                    <div class="message-bubble">❌ Unable to access webcam. Please grant permission and ensure you have a working webcam to continue the interview.</div>
+                    <div class="message-time">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                </div>`;
+            messagesList.insertBefore(errorMessageDiv, typingIndicator);
+            const messagesContainer = document.getElementById('messagesContainer');
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function stopWebcam() {
+            if (webcamStream) {
+                webcamStream.getTracks().forEach(track => track.stop());
+                webcamStream = null;
+                const videoElement = document.getElementById('webcamVideo');
+                videoElement.srcObject = null;
+                const webcamContainer = document.getElementById('webcamContainer');
+                webcamContainer.classList.remove('active');
+                const stopButton = document.getElementById('stopWebcamButton');
+                stopButton.disabled = true;
+                isWebcamActive = false; // Update webcam status
             }
         }
 
@@ -280,6 +366,8 @@
 
         // Clear chat
         function clearChat() {
+            stopWebcam(); // Stop webcam when clearing chat
+            isInterviewActive = false;
             const messagesList = document.getElementById('messagesList');
             messagesList.innerHTML = `
                 <div class="welcome-screen" id="welcomeScreen">
@@ -331,6 +419,12 @@
             const message = input.value.trim();
             if (!message) return;
 
+            // Prevent sending messages during interview if webcam is not active
+            if (isInterviewActive && !isWebcamActive) {
+                alert('Please enable your webcam to continue the interview.');
+                return;
+            }
+
             // Hide welcome screen
             const welcomeScreen = document.getElementById('welcomeScreen');
             if (welcomeScreen) {
@@ -381,6 +475,15 @@
                         </div>`;
                     messagesList.insertBefore(botMessageDiv, typingIndicator);
                     messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+                    // Handle webcam and interview state
+                    if (response.startInterview) {
+                        isInterviewActive = true;
+                        startWebcam();
+                    } else if (response.response.includes('interview will not start') || response.response.includes('Thank you for completing the interview')) {
+                        isInterviewActive = false;
+                        stopWebcam();
+                    }
                 },
                 error: function () {
                     typingIndicator.style.display = 'none';
@@ -502,6 +605,11 @@
                     }
                 });
             }
+        });
+
+        // Stop webcam when page is unloaded
+        window.addEventListener('beforeunload', function () {
+            stopWebcam();
         });
     </script>
 }
