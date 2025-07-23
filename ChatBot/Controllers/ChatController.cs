@@ -666,5 +666,63 @@ namespace ChatBot.Controllers
         {
             public int Count { get; set; }
         }
+
+        [HttpPost]
+        public IActionResult UploadInterviewVideo()
+        {
+            try
+            {
+                var file = Request.Form.Files["video"];
+                if (file == null || file.Length == 0)
+                {
+                    return BadRequest("No video file uploaded.");
+                }
+
+                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Uploads", "InterviewVideos");
+                if (!Directory.Exists(uploadsFolder))
+                {
+                    Directory.CreateDirectory(uploadsFolder);
+                }
+
+                var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
+                var filePath = Path.Combine(uploadsFolder, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    file.CopyTo(stream);
+                }
+
+                // Save metadata to database using correct ChatMessage properties
+                var userId = HttpContext.Session.Id; // Use UserId from session
+                var message = new ChatMessage
+                {
+                    UserId = userId,
+                    BotResponse = $"Video recorded and saved: {fileName}",
+                    CreatedAt = DateTime.Now,
+                    Model = "custom"
+                };
+                _chatDbService.SaveMessage(message);
+
+                return Json(new { fileName });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error uploading interview video");
+                return StatusCode(500, "Error uploading video");
+            }
+        }
+
+        [HttpGet]
+        public IActionResult ViewInterviewVideo(string fileName)
+        {
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Uploads", "InterviewVideos", fileName);
+            if (!System.IO.File.Exists(filePath))
+            {
+                return NotFound("Video not found.");
+            }
+
+            var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
+            return File(stream, "video/webm");
+        }
     }
 }

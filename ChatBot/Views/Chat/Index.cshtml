@@ -240,8 +240,10 @@
         let recognition = null;
         let isRecording = false;
         let webcamStream = null;
-        let isWebcamActive = false; // Track webcam status
-        let isInterviewActive = false; // Track interview state
+        let isWebcamActive = false;
+        let isInterviewActive = false;
+        let mediaRecorder = null; // For recording video
+        let recordedChunks = []; // Store video data
 
         if (SpeechRecognition) {
             recognition = new SpeechRecognition();
@@ -284,7 +286,7 @@
             };
         }
 
-        // Webcam handling
+        // Webcam handling with recording
         async function startWebcam() {
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
                 alert('Webcam is not supported in this browser.');
@@ -293,7 +295,7 @@
             }
 
             try {
-                webcamStream = await navigator.mediaDevices.getUserMedia({ video: true });
+                webcamStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true }); // Include audio
                 const videoElement = document.getElementById('webcamVideo');
                 const webcamContainer = document.getElementById('webcamContainer');
                 const stopButton = document.getElementById('stopWebcamButton');
@@ -301,7 +303,39 @@
                 videoElement.srcObject = webcamStream;
                 webcamContainer.classList.add('active');
                 stopButton.disabled = false;
-                isWebcamActive = true; // Set webcam status to active
+                isWebcamActive = true;
+
+                // Start recording
+                recordedChunks = [];
+                mediaRecorder = new MediaRecorder(webcamStream, { mimeType: 'video/webm' });
+                mediaRecorder.ondataavailable = function(event) {
+                    if (event.data.size > 0) {
+                        recordedChunks.push(event.data);
+                    }
+                };
+                mediaRecorder.onstop = function() {
+                    const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                    const formData = new FormData();
+                    formData.append('video', blob, `interview-${Date.now()}.webm`);
+
+                    // Send video to backend
+                    $.ajax({
+                        url: '/Chat/UploadInterviewVideo',
+                        type: 'POST',
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                        success: function(response) {
+                            console.log('Video uploaded successfully:', response);
+                            appendMessage('bot', `🎥 Video recorded and saved successfully. <a href="/Chat/ViewInterviewVideo?fileName=${response.fileName}" target="_blank">View Video</a>`);
+                        },
+                        error: function() {
+                            console.error('Error uploading video');
+                            appendMessage('bot', '❌ Error saving video. Please try again.');
+                        }
+                    });
+                };
+                mediaRecorder.start();
             } catch (error) {
                 console.error('Error accessing webcam:', error);
                 appendWebcamErrorMessage();
@@ -310,23 +344,30 @@
         }
 
         function appendWebcamErrorMessage() {
+            appendMessage('bot', '❌ Unable to access webcam. Please grant permission and ensure you have a working webcam to continue the interview.');
+        }
+
+        function appendMessage(sender, content) {
             const messagesList = document.getElementById('messagesList');
             const typingIndicator = document.getElementById('typingIndicator');
-            const errorMessageDiv = document.createElement('div');
-            errorMessageDiv.className = 'message bot';
-            errorMessageDiv.innerHTML = `
-                <div class="message-avatar"><i class="fas fa-robot"></i></div>
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            messageDiv.innerHTML = `
+                <div class="message-avatar"><i class="fas fa-${sender === 'bot' ? 'robot' : 'user'}"></i></div>
                 <div class="message-content">
-                    <div class="message-bubble">❌ Unable to access webcam. Please grant permission and ensure you have a working webcam to continue the interview.</div>
+                    <div class="message-bubble">${content}</div>
                     <div class="message-time">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                 </div>`;
-            messagesList.insertBefore(errorMessageDiv, typingIndicator);
+            messagesList.insertBefore(messageDiv, typingIndicator);
             const messagesContainer = document.getElementById('messagesContainer');
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
         function stopWebcam() {
             if (webcamStream) {
+                if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                    mediaRecorder.stop();
+                }
                 webcamStream.getTracks().forEach(track => track.stop());
                 webcamStream = null;
                 const videoElement = document.getElementById('webcamVideo');
@@ -335,7 +376,7 @@
                 webcamContainer.classList.remove('active');
                 const stopButton = document.getElementById('stopWebcamButton');
                 stopButton.disabled = true;
-                isWebcamActive = false; // Update webcam status
+                isWebcamActive = false;
             }
         }
 
@@ -366,7 +407,7 @@
 
         // Clear chat
         function clearChat() {
-            stopWebcam(); // Stop webcam when clearing chat
+            stopWebcam();
             isInterviewActive = false;
             const messagesList = document.getElementById('messagesList');
             messagesList.innerHTML = `
@@ -419,64 +460,33 @@
             const message = input.value.trim();
             if (!message) return;
 
-            // Prevent sending messages during interview if webcam is not active
             if (isInterviewActive && !isWebcamActive) {
                 alert('Please enable your webcam to continue the interview.');
                 return;
             }
 
-            // Hide welcome screen
             const welcomeScreen = document.getElementById('welcomeScreen');
             if (welcomeScreen) {
                 welcomeScreen.style.display = 'none';
             }
 
-            // Add user message
-            const messagesList = document.getElementById('messagesList');
-            const userMessageDiv = document.createElement('div');
-            userMessageDiv.className = 'message user';
-            userMessageDiv.innerHTML = `
-                <div class="message-content">
-                    <div class="message-bubble">${message}</div>
-                    <div class="message-time">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-                </div>
-                <div class="message-avatar"><i class="fas fa-user"></i></div>`;
+            appendMessage('user', message);
 
-            // Insert before typing indicator
             const typingIndicator = document.getElementById('typingIndicator');
-            messagesList.insertBefore(userMessageDiv, typingIndicator);
-
-            // Scroll to bottom
-            const messagesContainer = document.getElementById('messagesContainer');
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-
-            // Show typing indicator
             typingIndicator.style.display = 'flex';
 
-            // Clear input
             input.value = '';
             autoResize(input);
 
-            // Send message to server
             $.ajax({
                 url: '/Chat/SendMessage',
                 type: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify({ userMessage: message }),
-                success: function (response) {
+                success: function(response) {
                     typingIndicator.style.display = 'none';
-                    const botMessageDiv = document.createElement('div');
-                    botMessageDiv.className = 'message bot';
-                    botMessageDiv.innerHTML = `
-                        <div class="message-avatar"><i class="fas fa-robot"></i></div>
-                        <div class="message-content">
-                            <div class="message-bubble">${response.response}</div>
-                            <div class="message-time">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-                        </div>`;
-                    messagesList.insertBefore(botMessageDiv, typingIndicator);
-                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                    appendMessage('bot', response.response);
 
-                    // Handle webcam and interview state
                     if (response.startInterview) {
                         isInterviewActive = true;
                         startWebcam();
@@ -485,24 +495,15 @@
                         stopWebcam();
                     }
                 },
-                error: function () {
+                error: function() {
                     typingIndicator.style.display = 'none';
-                    const errorMessageDiv = document.createElement('div');
-                    errorMessageDiv.className = 'message bot';
-                    errorMessageDiv.innerHTML = `
-                        <div class="message-avatar"><i class="fas fa-robot"></i></div>
-                        <div class="message-content">
-                            <div class="message-bubble">❌ Sorry, I encountered an error. Please try again.</div>
-                            <div class="message-time">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-                        </div>`;
-                    messagesList.insertBefore(errorMessageDiv, typingIndicator);
-                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                    appendMessage('bot', '❌ Sorry, I encountered an error. Please try again.');
                 }
             });
         }
 
         // Handle file upload
-        document.getElementById('fileInput').addEventListener('change', function (event) {
+        document.getElementById('fileInput').addEventListener('change', function(event) {
             const file = event.target.files[0];
             if (!file) return;
 
@@ -522,35 +523,16 @@
                 return;
             }
 
-            // Hide welcome screen
             const welcomeScreen = document.getElementById('welcomeScreen');
             if (welcomeScreen) {
                 welcomeScreen.style.display = 'none';
             }
 
-            // Add user message indicating file upload
-            const messagesList = document.getElementById('messagesList');
-            const userMessageDiv = document.createElement('div');
-            userMessageDiv.className = 'message user';
-            userMessageDiv.innerHTML = `
-                <div class="message-content">
-                    <div class="message-bubble">📄 Uploaded resume: ${file.name}</div>
-                    <div class="message-time">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-                </div>
-                <div class="message-avatar"><i class="fas fa-user"></i></div>`;
+            appendMessage('user', `📄 Uploaded resume: ${file.name}`);
 
-            // Insert before typing indicator
             const typingIndicator = document.getElementById('typingIndicator');
-            messagesList.insertBefore(userMessageDiv, typingIndicator);
-
-            // Scroll to bottom
-            const messagesContainer = document.getElementById('messagesContainer');
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-
-            // Show typing indicator
             typingIndicator.style.display = 'flex';
 
-            // Upload file to server
             const formData = new FormData();
             formData.append('resume', file);
             $.ajax({
@@ -559,32 +541,14 @@
                 data: formData,
                 processData: false,
                 contentType: false,
-                success: function (response) {
+                success: function(response) {
                     typingIndicator.style.display = 'none';
-                    const botMessageDiv = document.createElement('div');
-                    botMessageDiv.className = 'message bot';
-                    botMessageDiv.innerHTML = `
-                        <div class="message-avatar"><i class="fas fa-robot"></i></div>
-                        <div class="message-content">
-                            <div class="message-bubble">${response.response}</div>
-                            <div class="message-time">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-                        </div>`;
-                    messagesList.insertBefore(botMessageDiv, typingIndicator);
-                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                    appendMessage('bot', response.response);
                     event.target.value = '';
                 },
-                error: function () {
+                error: function() {
                     typingIndicator.style.display = 'none';
-                    const errorMessageDiv = document.createElement('div');
-                    errorMessageDiv.className = 'message bot';
-                    errorMessageDiv.innerHTML = `
-                        <div class="message-avatar"><i class="fas fa-robot"></i></div>
-                        <div class="message-content">
-                            <div class="message-bubble">❌ Error uploading resume. Please try again.</div>
-                            <div class="message-time">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-                        </div>`;
-                    messagesList.insertBefore(errorMessageDiv, typingIndicator);
-                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                    appendMessage('bot', '❌ Error uploading resume. Please try again.');
                     event.target.value = '';
                 }
             });
@@ -592,7 +556,7 @@
 
         // Track tab switches
         let tabSwitchCount = 0;
-        document.addEventListener('visibilitychange', function () {
+        document.addEventListener('visibilitychange', function() {
             if (document.hidden) {
                 tabSwitchCount++;
                 $.ajax({
@@ -600,7 +564,7 @@
                     type: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify({ count: tabSwitchCount }),
-                    error: function () {
+                    error: function() {
                         console.error('Error updating tab switch count');
                     }
                 });
@@ -608,7 +572,7 @@
         });
 
         // Stop webcam when page is unloaded
-        window.addEventListener('beforeunload', function () {
+        window.addEventListener('beforeunload', function() {
             stopWebcam();
         });
     </script>
