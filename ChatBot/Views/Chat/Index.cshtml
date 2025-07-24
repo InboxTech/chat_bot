@@ -125,6 +125,7 @@
     <div class="webcam-container" id="webcamContainer">
         <video class="webcam-video" id="webcamVideo" autoplay muted></video>
         <div class="webcam-controls">
+            <button class="webcam-btn" id="captureIDButton" onclick="captureIDProof()">Capture ID Proof</button>
             <button class="webcam-btn" id="stopWebcamButton" onclick="stopWebcam()" disabled>Stop Webcam</button>
         </div>
     </div>
@@ -231,19 +232,17 @@
     </div>
 </div>
 
-<!-- Only showing the updated Scripts section for brevity -->
 @section Scripts {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        // Initialize Speech Recognition
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         let recognition = null;
         let isRecording = false;
         let webcamStream = null;
         let isWebcamActive = false;
         let isInterviewActive = false;
-        let mediaRecorder = null; // For recording video
-        let recordedChunks = []; // Store video data
+        let mediaRecorder = null;
+        let recordedChunks = [];
 
         if (SpeechRecognition) {
             recognition = new SpeechRecognition();
@@ -286,7 +285,6 @@
             };
         }
 
-        // Webcam handling with recording
         async function startWebcam() {
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
                 alert('Webcam is not supported in this browser.');
@@ -295,47 +293,49 @@
             }
 
             try {
-                webcamStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true }); // Include audio
+                webcamStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
                 const videoElement = document.getElementById('webcamVideo');
                 const webcamContainer = document.getElementById('webcamContainer');
                 const stopButton = document.getElementById('stopWebcamButton');
+                const captureButton = document.getElementById('captureIDButton');
 
                 videoElement.srcObject = webcamStream;
                 webcamContainer.classList.add('active');
                 stopButton.disabled = false;
+                captureButton.disabled = false;
                 isWebcamActive = true;
 
-                // Start recording
-                recordedChunks = [];
-                mediaRecorder = new MediaRecorder(webcamStream, { mimeType: 'video/webm' });
-                mediaRecorder.ondataavailable = function(event) {
-                    if (event.data.size > 0) {
-                        recordedChunks.push(event.data);
-                    }
-                };
-                mediaRecorder.onstop = function() {
-                    const blob = new Blob(recordedChunks, { type: 'video/webm' });
-                    const formData = new FormData();
-                    formData.append('video', blob, `interview-${Date.now()}.webm`);
-
-                    // Send video to backend
-                    $.ajax({
-                        url: '/Chat/UploadInterviewVideo',
-                        type: 'POST',
-                        data: formData,
-                        processData: false,
-                        contentType: false,
-                        success: function(response) {
-                            console.log('Video uploaded successfully:', response);
-                            appendMessage('bot', `🎥 Video recorded and saved successfully. <a href="/Chat/ViewInterviewVideo?fileName=${response.fileName}" target="_blank">View Video</a>`);
-                        },
-                        error: function() {
-                            console.error('Error uploading video');
-                            appendMessage('bot', '❌ Error saving video. Please try again.');
+                if (isInterviewActive) {
+                    recordedChunks = [];
+                    mediaRecorder = new MediaRecorder(webcamStream, { mimeType: 'video/webm' });
+                    mediaRecorder.ondataavailable = function(event) {
+                        if (event.data.size > 0) {
+                            recordedChunks.push(event.data);
                         }
-                    });
-                };
-                mediaRecorder.start();
+                    };
+                    mediaRecorder.onstop = function() {
+                        const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                        const formData = new FormData();
+                        formData.append('video', blob, `interview-${Date.now()}.webm`);
+
+                        $.ajax({
+                            url: '/Chat/UploadInterviewVideo',
+                            type: 'POST',
+                            data: formData,
+                            processData: false,
+                            contentType: false,
+                            success: function(response) {
+                                console.log('Video uploaded successfully:', response);
+                                appendMessage('bot', `🎥 Video recorded and saved successfully. <a href="/Chat/ViewInterviewVideo?fileName=${response.fileName}" target="_blank">View Video</a>`);
+                            },
+                            error: function() {
+                                console.error('Error uploading video');
+                                appendMessage('bot', '❌ Error saving video. Please try again.');
+                            }
+                        });
+                    };
+                    mediaRecorder.start();
+                }
             } catch (error) {
                 console.error('Error accessing webcam:', error);
                 appendWebcamErrorMessage();
@@ -345,6 +345,73 @@
 
         function appendWebcamErrorMessage() {
             appendMessage('bot', '❌ Unable to access webcam. Please grant permission and ensure you have a working webcam to continue the interview.');
+        }
+
+        function captureIDProof() {
+            if (!webcamStream) {
+                alert('Webcam is not active. Please start the webcam first.');
+                return;
+            }
+
+            const videoElement = document.getElementById('webcamVideo');
+            const canvas = document.createElement('canvas');
+            canvas.width = videoElement.videoWidth;
+            canvas.height = videoElement.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+
+            canvas.toBlob(function(blob) {
+                const formData = new FormData();
+                formData.append('idProof', blob, `id-proof-${Date.now()}.jpg`);
+
+                appendMessage('user', '📷 Captured ID proof');
+                const typingIndicator = document.getElementById('typingIndicator');
+                typingIndicator.style.display = 'flex';
+
+                $.ajax({
+                    url: '/Chat/UploadIDProof',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        typingIndicator.style.display = 'none';
+                        if (response.success) {
+                            appendMessage('bot', response.response);
+                            if (response.startInterview) {
+                                isInterviewActive = true;
+                                startWebcam();
+                            }
+                        } else {
+                            appendMessage('bot', response.message);
+                            startWebcam(); // Restart webcam for retake
+                        }
+                    },
+                    error: function() {
+                        typingIndicator.style.display = 'none';
+                        appendMessage('bot', '❌ Error uploading ID proof. Please try again.');
+                    }
+                });
+            }, 'image/jpeg', 0.9);
+        }
+
+        function stopWebcam() {
+            if (webcamStream) {
+                if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                    mediaRecorder.stop();
+                }
+                webcamStream.getTracks().forEach(track => track.stop());
+                webcamStream = null;
+                const videoElement = document.getElementById('webcamVideo');
+                videoElement.srcObject = null;
+                const webcamContainer = document.getElementById('webcamContainer');
+                webcamContainer.classList.remove('active');
+                const stopButton = document.getElementById('stopWebcamButton');
+                const captureButton = document.getElementById('captureIDButton');
+                stopButton.disabled = true;
+                captureButton.disabled = true;
+                isWebcamActive = false;
+            }
         }
 
         function appendMessage(sender, content) {
@@ -363,35 +430,15 @@
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
-        function stopWebcam() {
-            if (webcamStream) {
-                if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-                    mediaRecorder.stop();
-                }
-                webcamStream.getTracks().forEach(track => track.stop());
-                webcamStream = null;
-                const videoElement = document.getElementById('webcamVideo');
-                videoElement.srcObject = null;
-                const webcamContainer = document.getElementById('webcamContainer');
-                webcamContainer.classList.remove('active');
-                const stopButton = document.getElementById('stopWebcamButton');
-                stopButton.disabled = true;
-                isWebcamActive = false;
-            }
-        }
-
-        // Trigger file input click
         function triggerFileInput() {
             document.getElementById('fileInput').click();
         }
 
-        // Auto-resize textarea
         function autoResize(textarea) {
             textarea.style.height = 'auto';
             textarea.style.height = `${textarea.scrollHeight}px`;
         }
 
-        // Handle Enter key to send message
         function handleKeyPress(event) {
             if (event.key === 'Enter' && !event.shiftKey) {
                 event.preventDefault();
@@ -399,13 +446,11 @@
             }
         }
 
-        // Send quick action message
         function sendQuickMessage(message) {
             document.getElementById('messageInput').value = message;
             sendMessage();
         }
 
-        // Clear chat
         function clearChat() {
             stopWebcam();
             isInterviewActive = false;
@@ -454,7 +499,6 @@
             autoResize(document.getElementById('messageInput'));
         }
 
-        // Send message to server
         function sendMessage() {
             const input = document.getElementById('messageInput');
             const message = input.value.trim();
@@ -475,9 +519,6 @@
             const typingIndicator = document.getElementById('typingIndicator');
             typingIndicator.style.display = 'flex';
 
-            input.value = '';
-            autoResize(input);
-
             $.ajax({
                 url: '/Chat/SendMessage',
                 type: 'POST',
@@ -487,7 +528,9 @@
                     typingIndicator.style.display = 'none';
                     appendMessage('bot', response.response);
 
-                    if (response.startInterview) {
+                    if (response.response.includes('Please upload a clear photo of your government-issued ID')) {
+                        startWebcam();
+                    } else if (response.startInterview) {
                         isInterviewActive = true;
                         startWebcam();
                     } else if (response.response.includes('interview will not start') || response.response.includes('Thank you for completing the interview')) {
@@ -502,13 +545,12 @@
             });
         }
 
-        // Handle file upload
         document.getElementById('fileInput').addEventListener('change', function(event) {
             const file = event.target.files[0];
             if (!file) return;
 
             const validExtensions = ['.pdf', '.docx'];
-            const maxSize = 5 * 1024 * 1024; // 5MB
+            const maxSize = 5 * 1024 * 1024;
             const extension = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
 
             if (!validExtensions.includes(extension)) {
@@ -554,7 +596,6 @@
             });
         });
 
-        // Track tab switches
         let tabSwitchCount = 0;
         document.addEventListener('visibilitychange', function() {
             if (document.hidden) {
@@ -571,7 +612,6 @@
             }
         });
 
-        // Stop webcam when page is unloaded
         window.addEventListener('beforeunload', function() {
             stopWebcam();
         });

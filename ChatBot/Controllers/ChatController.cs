@@ -16,6 +16,8 @@ using iText.Kernel.Pdf;
 using iText.Kernel.Pdf.Canvas.Parser;
 using Xceed.Words.NET;
 using System.Text;
+using System.Drawing;
+using System.Drawing.Imaging;
 
 namespace ChatBot.Controllers
 {
@@ -65,7 +67,7 @@ namespace ChatBot.Controllers
             string userId = HttpContext.Session.Id;
             string response = "";
             string modelUsed = "custom";
-            bool startInterview = false; // Flag to indicate interview start
+            bool startInterview = false;
 
             var message = new ChatMessage
             {
@@ -367,43 +369,23 @@ namespace ChatBot.Controllers
                                 }
                             }
                         }
+                        else if (appState == "AwaitingIDProof")
+                        {
+                            response = "Please upload a clear photo of your government-issued ID (e.g., passport, driver's license) using the webcam capture button below.";
+                            message.BotResponse = response;
+                            sessionMessages.Add(message);
+                            _chatDbService.SaveMessage(message);
+                            return Json(new { response, model = modelUsed, startInterview = false });
+                        }
                         else if (appState == "AwaitingInterviewStart")
                         {
                             if (Regex.IsMatch(msg, @"\b(yes|yep|yepp|yeah|sure|start)\b", RegexOptions.IgnoreCase))
                             {
-                                var selectedJob = HttpContext.Session.GetString("SelectedJob") ?? "";
-                                if (!string.IsNullOrEmpty(selectedJob))
+                                var nextQuestion = _preInterviewQuestions.FirstOrDefault(q => q.State == "AwaitingIDProof");
+                                if (nextQuestion != null)
                                 {
-                                    var (questions, interviewModel) = await _chatGPTService.GenerateRandomInterviewQuestionsWithModelAsync(selectedJob);
-                                    var newSession = new InterviewSession
-                                    {
-                                        UserId = userId,
-                                        JobTitle = selectedJob,
-                                        Questions = questions,
-                                        QuestionIndex = 0,
-                                        IsComplete = false,
-                                        TabSwitchCount = 0
-                                    };
-                                    _chatDbService.SaveInterviewSession(newSession);
-                                    response = $"🧪 Starting interview for {selectedJob}.\n❓ Question 1: {questions[0]}";
-                                    modelUsed = interviewModel;
-                                    startInterview = true; // Signal interview start
-                                    message.BotResponse = response;
-                                    sessionMessages.Add(message);
-                                    _chatDbService.SaveMessage(message);
-                                    SaveAndClearSessionMessages(userDetails?.Name, userDetails?.Phone, userDetails?.Email, true);
-                                    ClearApplicationState();
-                                    return Json(new { response, model = modelUsed, startInterview });
-                                }
-                                else
-                                {
-                                    response = "❌ No job selected. Please start the application process again or upload your resume to find suitable jobs.";
-                                    message.BotResponse = response;
-                                    sessionMessages.Add(message);
-                                    _chatDbService.SaveMessage(message);
-                                    SaveAndClearSessionMessages(userDetails?.Name, userDetails?.Phone, userDetails?.Email, true);
-                                    ClearApplicationState();
-                                    return Json(new { response, model = modelUsed, startInterview = false });
+                                    HttpContext.Session.SetString("ApplicationState", nextQuestion.State);
+                                    response = nextQuestion.Prompt;
                                 }
                             }
                             else if (Regex.IsMatch(msg, @"\b(no|nope|nah|don't)\b", RegexOptions.IgnoreCase))
@@ -655,6 +637,155 @@ namespace ChatBot.Controllers
         }
 
         [HttpPost]
+        public IActionResult UploadIDProof()
+        {
+            try
+            {
+                var file = Request.Form.Files["idProof"];
+                if (file == null || file.Length == 0)
+                {
+                    return Json(new { success = false, message = "No ID proof uploaded. Please capture a photo of your government-issued ID." });
+                }
+
+                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Uploads", "IDProofs");
+                if (!Directory.Exists(uploadsFolder))
+                {
+                    Directory.CreateDirectory(uploadsFolder);
+                }
+
+                var userId = HttpContext.Session.Id;
+                var userDetailsStr = HttpContext.Session.GetString("UserDetails");
+                var userDetails = userDetailsStr is not null ? JsonConvert.DeserializeObject<UserDetails>(userDetailsStr) : new UserDetails { UserId = userId };
+                var name = userDetails?.Name?.Replace(" ", "_") ?? userId;
+                var fileName = $"{name}_{Guid.NewGuid()}.jpg";
+                var filePath = Path.Combine(uploadsFolder, fileName);
+
+                using (var stream = new MemoryStream())
+                {
+                    file.CopyTo(stream);
+                    stream.Position = 0;
+
+                    // Check image quality (basic blurriness detection using variance of Laplacian)
+                    using (var image = Image.FromStream(stream))
+                    {
+                        bool isBlurry = IsImageBlurry(image);
+                        if (isBlurry)
+                        {
+                            return Json(new { success = false, message = "The ID proof image is blurry or of poor quality. Please retake the photo." });
+                        }
+
+                        stream.Position = 0;
+                        using (var fileStream = new FileStream(filePath, FileMode.Create))
+                        {
+                            stream.CopyTo(fileStream);
+                        }
+                    }
+                }
+
+                // Save ID proof metadata to database
+                var message = new ChatMessage
+                {
+                    UserId = userId,
+                    UserMessage = "Uploaded ID proof",
+                    BotResponse = $"ID proof captured and saved: {fileName}",
+                    Model = "custom",
+                    CreatedAt = DateTime.Now
+                };
+                _chatDbService.SaveMessage(message);
+
+                // Update user details with ID proof path
+                userDetails.IDProofPath = filePath;
+                HttpContext.Session.SetString("UserDetails", JsonConvert.SerializeObject(userDetails));
+                _chatDbService.SaveUserDetails(userDetails);
+
+                // Proceed to interview
+                var selectedJob = HttpContext.Session.GetString("SelectedJob") ?? "";
+                if (!string.IsNullOrEmpty(selectedJob))
+                {
+                    var (questions, interviewModel) = _chatGPTService.GenerateRandomInterviewQuestionsWithModelAsync(selectedJob).Result;
+                    var newSession = new InterviewSession
+                    {
+                        UserId = userId,
+                        JobTitle = selectedJob,
+                        Questions = questions,
+                        QuestionIndex = 0,
+                        IsComplete = false,
+                        TabSwitchCount = 0
+                    };
+                    _chatDbService.SaveInterviewSession(newSession);
+                    var response = $"🧪 Starting interview for {selectedJob}.\n❓ Question 1: {questions[0]}";
+                    message.BotResponse = response;
+                    _chatDbService.SaveMessage(message);
+                    return Json(new { success = true, response, model = interviewModel, startInterview = true });
+                }
+                else
+                {
+                    var response = "❌ No job selected. Please start the application process again or upload your resume to find suitable jobs.";
+                    message.BotResponse = response;
+                    _chatDbService.SaveMessage(message);
+                    return Json(new { success = false, response, model = "custom", startInterview = false });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error uploading ID proof.");
+                return Json(new { success = false, message = "Error uploading ID proof. Please try again.", model = "error" });
+            }
+        }
+
+        private bool IsImageBlurry(Image image)
+        {
+            // Basic blurriness detection using variance of Laplacian
+            // Convert image to grayscale and compute Laplacian variance
+            using (var bitmap = new Bitmap(image))
+            {
+                // Convert to grayscale
+                var grayscale = new Bitmap(bitmap.Width, bitmap.Height);
+                for (int y = 0; y < bitmap.Height; y++)
+                {
+                    for (int x = 0; x < bitmap.Width; x++)
+                    {
+                        var pixel = bitmap.GetPixel(x, y);
+                        int gray = (int)(0.299 * pixel.R + 0.587 * pixel.G + 0.114 * pixel.B);
+                        grayscale.SetPixel(x, y, Color.FromArgb(gray, gray, gray));
+                    }
+                }
+
+                // Compute Laplacian
+                double[,] laplacian = new double[,]
+                {
+                    { 0,  1,  0 },
+                    { 1, -4,  1 },
+                    { 0,  1,  0 }
+                };
+
+                double sum = 0;
+                int count = 0;
+                for (int y = 1; y < grayscale.Height - 1; y++)
+                {
+                    for (int x = 1; x < grayscale.Width - 1; x++)
+                    {
+                        double laplacianValue = 0;
+                        for (int ky = -1; ky <= 1; ky++)
+                        {
+                            for (int kx = -1; kx <= 1; kx++)
+                            {
+                                var pixel = grayscale.GetPixel(x + kx, y + ky);
+                                laplacianValue += pixel.R * laplacian[ky + 1, kx + 1];
+                            }
+                        }
+                        sum += laplacianValue * laplacianValue;
+                        count++;
+                    }
+                }
+
+                double variance = sum / count;
+                // Threshold for blurriness (adjust based on testing)
+                return variance < 100; // Lower variance indicates blurrier image
+            }
+        }
+
+        [HttpPost]
         public IActionResult UpdateTabSwitchCount([FromBody] TabSwitchModel data)
         {
             string userId = HttpContext.Session.Id;
@@ -692,8 +823,7 @@ namespace ChatBot.Controllers
                     file.CopyTo(stream);
                 }
 
-                // Save metadata to database using correct ChatMessage properties
-                var userId = HttpContext.Session.Id; // Use UserId from session
+                var userId = HttpContext.Session.Id;
                 var message = new ChatMessage
                 {
                     UserId = userId,
@@ -723,6 +853,19 @@ namespace ChatBot.Controllers
 
             var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
             return File(stream, "video/webm");
+        }
+
+        [HttpGet]
+        public IActionResult ViewIDProof(string fileName)
+        {
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Uploads", "IDProofs", fileName);
+            if (!System.IO.File.Exists(filePath))
+            {
+                return NotFound("ID proof not found.");
+            }
+
+            var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
+            return File(stream, "image/jpeg");
         }
     }
 }

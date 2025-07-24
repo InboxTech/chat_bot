@@ -1,10 +1,10 @@
-﻿# Ignore build output
-/bin/
-/obj/
-/.vs/
-/*.user
+﻿bin/
+obj/
+.vs/
+*.user
 *.suo
 *.pdb
-*.exe
-*.dll
 *.cache
+*.dll
+*.exe
+*.log
