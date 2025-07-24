@@ -18,6 +18,8 @@ using Xceed.Words.NET;
 using System.Text;
 using System.Drawing;
 using System.Drawing.Imaging;
+using OpenCvSharp;
+using Tesseract;
 
 namespace ChatBot.Controllers
 {
@@ -150,33 +152,6 @@ namespace ChatBot.Controllers
                             if (!string.IsNullOrEmpty(userIdentity))
                             {
                                 HttpContext.Session.SetString("UserIdentity", userIdentity);
-                                var folderPath = @"C:\Conversation";
-                                var oldFileName = HttpContext.Session.GetString("SessionFileName") ?? $"session_{userId}.txt";
-                                var oldPath = Path.Combine(folderPath, oldFileName);
-
-                                string finalFileName = "";
-                                if (!string.IsNullOrEmpty(name))
-                                {
-                                    var safeName = name.Replace(" ", "_").Replace(":", "").Replace("\\", "").Replace("/", "");
-                                    if (!string.IsNullOrEmpty(phone))
-                                        finalFileName = $"{safeName}_{phone.Replace(" ", "").Replace("-", "")}.txt";
-                                    else if (!string.IsNullOrEmpty(email))
-                                        finalFileName = $"{safeName}_{email.Replace(" ", "").Replace("@", "_").Replace(".", "_")}.txt";
-                                    else
-                                        finalFileName = $"{safeName}_{DateTime.Now:yyyyMMdd_HHmmss}.txt";
-                                }
-                                else
-                                {
-                                    finalFileName = $"{userId}_{DateTime.Now:yyyyMMdd_HHmmss}.txt";
-                                }
-
-                                var newPath = Path.Combine(folderPath, finalFileName);
-                                if (System.IO.File.Exists(oldPath) && oldPath != newPath)
-                                {
-                                    System.IO.File.Move(oldPath, newPath, overwrite: true);
-                                }
-
-                                HttpContext.Session.SetString("SessionFileName", finalFileName);
                             }
                         }
 
@@ -371,7 +346,7 @@ namespace ChatBot.Controllers
                         }
                         else if (appState == "AwaitingIDProof")
                         {
-                            response = "Please upload a clear photo of your government-issued ID (e.g., passport, driver's license) using the webcam capture button below.";
+                            response = "Please hold your government-issued ID (e.g., passport, driver's license) in front of your face and capture the photo using the webcam capture button below.";
                             message.BotResponse = response;
                             sessionMessages.Add(message);
                             _chatDbService.SaveMessage(message);
@@ -424,8 +399,16 @@ namespace ChatBot.Controllers
                                 var nextQuestion = _preInterviewQuestions.SkipWhile(q => q.State != appState).Skip(1).FirstOrDefault();
                                 if (appState == "AwaitingReasonToJoin")
                                 {
-                                    userDetails.CreatedAt = DateTime.Now;
-                                    _chatDbService.SaveUserDetails(userDetails);
+                                    try
+                                    {
+                                        userDetails.CreatedAt = DateTime.Now;
+                                        _chatDbService.SaveUserDetails(userDetails);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        _logger.LogError(ex, "Failed to save user details in AwaitingReasonToJoin for UserId: {UserId}", userDetails.UserId);
+                                        throw;
+                                    }
                                 }
                                 if (nextQuestion != null)
                                 {
@@ -502,7 +485,7 @@ namespace ChatBot.Controllers
                 }
                 else
                 {
-                    _logger.LogWarning($"No specific intent detected for query: {msg}. Attempting to process with GetSmartResponseAsync.");
+                    _logger.LogInformation($"No specific intent detected for query: {msg}. Attempting to process with GetSmartResponseAsync.");
                     var (resp, model) = await _chatGPTService.GetSmartResponseAsync(msg);
                     modelUsed = model;
                     response = resp;
@@ -520,7 +503,7 @@ namespace ChatBot.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error processing query: {msg}");
+                _logger.LogError(ex, $"Error processing query: {msg} in state: {HttpContext.Session.GetString("ApplicationState")}");
                 response = "❌ Unexpected error occurred. Please try again or contact us.";
                 modelUsed = "error";
                 message.BotResponse = response;
@@ -639,12 +622,36 @@ namespace ChatBot.Controllers
         [HttpPost]
         public IActionResult UploadIDProof()
         {
+            var userId = HttpContext.Session.Id;
+            var userDetailsStr = HttpContext.Session.GetString("UserDetails");
+            var userDetails = userDetailsStr is not null ? JsonConvert.DeserializeObject<UserDetails>(userDetailsStr) : new UserDetails { UserId = userId };
+            var chatMessage = new ChatMessage
+            {
+                UserId = userId,
+                UserMessage = "Attempted to upload ID proof",
+                Model = "custom",
+                CreatedAt = DateTime.Now
+            };
+
             try
             {
                 var file = Request.Form.Files["idProof"];
                 if (file == null || file.Length == 0)
                 {
-                    return Json(new { success = false, message = "No ID proof uploaded. Please capture a photo of your government-issued ID." });
+                    chatMessage.BotResponse = "No ID proof uploaded. Please capture a photo of your government-issued ID with your face visible.";
+                    _chatDbService.SaveMessage(chatMessage);
+                    return Json(new { success = false, message = chatMessage.BotResponse });
+                }
+
+                // Check interview attempt limit
+                int attemptCount = _chatDbService.GetInterviewAttemptCount(userDetails.Name, userDetails.Email, userDetails.Phone, userDetails.DateOfBirth);
+                if (attemptCount >= 2)
+                {
+                    chatMessage.BotResponse = "❌ You have exceeded the maximum number of attempts (2) for this interview.";
+                    _chatDbService.SaveMessage(chatMessage);
+                    HttpContext.Session.Remove("ApplicationState");
+                    HttpContext.Session.Remove("SelectedJob");
+                    return Json(new { success = false, message = chatMessage.BotResponse, model = "custom", startInterview = false });
                 }
 
                 var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Uploads", "IDProofs");
@@ -653,9 +660,6 @@ namespace ChatBot.Controllers
                     Directory.CreateDirectory(uploadsFolder);
                 }
 
-                var userId = HttpContext.Session.Id;
-                var userDetailsStr = HttpContext.Session.GetString("UserDetails");
-                var userDetails = userDetailsStr is not null ? JsonConvert.DeserializeObject<UserDetails>(userDetailsStr) : new UserDetails { UserId = userId };
                 var name = userDetails?.Name?.Replace(" ", "_") ?? userId;
                 var fileName = $"{name}_{Guid.NewGuid()}.jpg";
                 var filePath = Path.Combine(uploadsFolder, fileName);
@@ -665,14 +669,30 @@ namespace ChatBot.Controllers
                     file.CopyTo(stream);
                     stream.Position = 0;
 
-                    // Check image quality (basic blurriness detection using variance of Laplacian)
+                    // Check for face and ID document
                     using (var image = Image.FromStream(stream))
                     {
                         bool isBlurry = IsImageBlurry(image);
                         if (isBlurry)
                         {
-                            return Json(new { success = false, message = "The ID proof image is blurry or of poor quality. Please retake the photo." });
+                            chatMessage.BotResponse = "The ID proof image is blurry or of poor quality. Please retake the photo with your face and ID clearly visible.";
+                            _chatDbService.SaveMessage(chatMessage);
+                            return Json(new { success = false, message = chatMessage.BotResponse });
                         }
+
+                        stream.Position = 0;
+                        bool hasFaceAndID = DetectFaceAndID(stream);
+                        if (!hasFaceAndID)
+                        {
+                            chatMessage.BotResponse = "The image must contain both your face and a government-issued ID (e.g., passport, driver's license). Please retake the photo.";
+                            _chatDbService.SaveMessage(chatMessage);
+                            return Json(new { success = false, message = chatMessage.BotResponse });
+                        }
+
+                        // Extract DOB using OCR
+                        stream.Position = 0;
+                        DateTime? dateOfBirth = ExtractDateOfBirthFromID(stream);
+                        userDetails.DateOfBirth = dateOfBirth;
 
                         stream.Position = 0;
                         using (var fileStream = new FileStream(filePath, FileMode.Create))
@@ -683,20 +703,12 @@ namespace ChatBot.Controllers
                 }
 
                 // Save ID proof metadata to database
-                var message = new ChatMessage
-                {
-                    UserId = userId,
-                    UserMessage = "Uploaded ID proof",
-                    BotResponse = $"ID proof captured and saved: {fileName}",
-                    Model = "custom",
-                    CreatedAt = DateTime.Now
-                };
-                _chatDbService.SaveMessage(message);
-
-                // Update user details with ID proof path
                 userDetails.IDProofPath = filePath;
                 HttpContext.Session.SetString("UserDetails", JsonConvert.SerializeObject(userDetails));
                 _chatDbService.SaveUserDetails(userDetails);
+
+                chatMessage.BotResponse = $"ID proof captured and saved: {fileName}";
+                _chatDbService.SaveMessage(chatMessage);
 
                 // Proceed to interview
                 var selectedJob = HttpContext.Session.GetString("SelectedJob") ?? "";
@@ -714,32 +726,30 @@ namespace ChatBot.Controllers
                     };
                     _chatDbService.SaveInterviewSession(newSession);
                     var response = $"🧪 Starting interview for {selectedJob}.\n❓ Question 1: {questions[0]}";
-                    message.BotResponse = response;
-                    _chatDbService.SaveMessage(message);
+                    chatMessage.BotResponse = response;
+                    _chatDbService.SaveMessage(chatMessage);
                     return Json(new { success = true, response, model = interviewModel, startInterview = true });
                 }
                 else
                 {
-                    var response = "❌ No job selected. Please start the application process again or upload your resume to find suitable jobs.";
-                    message.BotResponse = response;
-                    _chatDbService.SaveMessage(message);
-                    return Json(new { success = false, response, model = "custom", startInterview = false });
+                    chatMessage.BotResponse = "❌ No job selected. Please start the application process again or upload your resume to find suitable jobs.";
+                    _chatDbService.SaveMessage(chatMessage);
+                    return Json(new { success = false, message = chatMessage.BotResponse, model = "custom", startInterview = false });
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error uploading ID proof.");
-                return Json(new { success = false, message = "Error uploading ID proof. Please try again.", model = "error" });
+                chatMessage.BotResponse = "Error uploading ID proof. Please try again.";
+                _chatDbService.SaveMessage(chatMessage);
+                return Json(new { success = false, message = chatMessage.BotResponse, model = "error" });
             }
         }
 
         private bool IsImageBlurry(Image image)
         {
-            // Basic blurriness detection using variance of Laplacian
-            // Convert image to grayscale and compute Laplacian variance
             using (var bitmap = new Bitmap(image))
             {
-                // Convert to grayscale
                 var grayscale = new Bitmap(bitmap.Width, bitmap.Height);
                 for (int y = 0; y < bitmap.Height; y++)
                 {
@@ -751,7 +761,6 @@ namespace ChatBot.Controllers
                     }
                 }
 
-                // Compute Laplacian
                 double[,] laplacian = new double[,]
                 {
                     { 0,  1,  0 },
@@ -780,8 +789,92 @@ namespace ChatBot.Controllers
                 }
 
                 double variance = sum / count;
-                // Threshold for blurriness (adjust based on testing)
-                return variance < 100; // Lower variance indicates blurrier image
+                return variance < 100;
+            }
+        }
+
+        private bool DetectFaceAndID(Stream imageStream)
+        {
+            try
+            {
+                imageStream.Position = 0;
+                byte[] imageBytes;
+                using (var ms = new MemoryStream())
+                {
+                    imageStream.CopyTo(ms);
+                    imageBytes = ms.ToArray();
+                }
+
+                using var mat = Cv2.ImDecode(imageBytes, ImreadModes.Color);
+                if (mat.Empty())
+                {
+                    _logger.LogWarning("Failed to decode image for face and ID detection.");
+                    return false;
+                }
+
+                // Load Haar cascade for face detection
+                using var faceCascade = new CascadeClassifier("haarcascade_frontalface_default.xml");
+
+                // Detect faces
+                var faces = faceCascade.DetectMultiScale(mat, scaleFactor: 1.1, minNeighbors: 5, minSize: new OpenCvSharp.Size(30, 30));
+                if (faces.Length == 0)
+                {
+                    _logger.LogWarning("No faces detected in the image.");
+                    return false;
+                }
+
+                // Use Tesseract for ID detection
+                using var engine = new TesseractEngine(@"./tessdata", "eng", EngineMode.Default);
+                using var image = Pix.LoadFromMemory(imageBytes);
+                using var page = engine.Process(image);
+                string text = page.GetText().ToLower();
+                bool idDetected = text.Contains("passport") || text.Contains("driver") || text.Contains("license") || text.Contains("id card");
+                if (!idDetected)
+                {
+                    _logger.LogWarning("No ID card detected in the image.");
+                    return false;
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error detecting face and ID in image.");
+                return false;
+            }
+        }
+        private DateTime? ExtractDateOfBirthFromID(Stream imageStream)
+        {
+            try
+            {
+                imageStream.Position = 0;
+                byte[] imageBytes;
+                using (var ms = new MemoryStream())
+                {
+                    imageStream.CopyTo(ms);
+                    imageBytes = ms.ToArray();
+                }
+
+                using var engine = new TesseractEngine(@"./tessdata", "eng", EngineMode.Default);
+                using var image = Pix.LoadFromMemory(imageBytes);
+                using var page = engine.Process(image);
+                string text = page.GetText();
+
+                // Regex for common date formats (e.g., MM/DD/YYYY, DD-MM-YYYY, YYYY/MM/DD)
+                var dateRegex = new Regex(@"\b(\d{1,2}[/-]\d{1,2}[/-]\d{2,4}|\d{4}[/-]\d{1,2}[/-]\d{1,2})\b");
+                var match = dateRegex.Match(text);
+                if (match.Success && DateTime.TryParse(match.Groups[1].Value, out var dob))
+                {
+                    return dob;
+                }
+
+                _logger.LogWarning("No valid date of birth found in ID proof.");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error extracting DOB from ID proof.");
+                return null;
             }
         }
 
@@ -824,14 +917,14 @@ namespace ChatBot.Controllers
                 }
 
                 var userId = HttpContext.Session.Id;
-                var message = new ChatMessage
+                var chatMessage = new ChatMessage
                 {
                     UserId = userId,
                     BotResponse = $"Video recorded and saved: {fileName}",
                     CreatedAt = DateTime.Now,
                     Model = "custom"
                 };
-                _chatDbService.SaveMessage(message);
+                _chatDbService.SaveMessage(chatMessage);
 
                 return Json(new { fileName });
             }

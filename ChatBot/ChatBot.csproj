@@ -10,12 +10,16 @@
     <PackageReference Include="DocX" Version="4.0.25105.5786" />
     <PackageReference Include="DotNetEnv" Version="3.1.1" />
     <PackageReference Include="HtmlAgilityPack" Version="1.12.1" />
-    <PackageReference Include="itext7" Version="9.2.0" />
+    <PackageReference Include="itext7" Version="8.0.2" />
     <PackageReference Include="jsreport.Types" Version="3.9.4" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.2" />
     <PackageReference Include="Microsoft.Playwright" Version="1.52.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="System.Drawing.Common" Version="9.0.7" />
+    <PackageReference Include="OpenCvSharp4" Version="4.11.0.20250507" />
+    <PackageReference Include="OpenCvSharp4.runtime.win" Version="4.11.0.20250507" />
+    <PackageReference Include="System.Drawing.Common" Version="8.0.0" />
+    <PackageReference Include="Tesseract" Version="5.2.0" />
+    <PackageReference Include="Xceed.Words.NET" Version="3.3.0" />
   </ItemGroup>
 
 </Project>
