@@ -619,6 +619,133 @@ namespace ChatBot.Controllers
             }
         }
 
+        //[HttpPost]
+        //public IActionResult UploadIDProof()
+        //{
+        //    var userId = HttpContext.Session.Id;
+        //    var userDetailsStr = HttpContext.Session.GetString("UserDetails");
+        //    var userDetails = userDetailsStr is not null ? JsonConvert.DeserializeObject<UserDetails>(userDetailsStr) : new UserDetails { UserId = userId };
+        //    var chatMessage = new ChatMessage
+        //    {
+        //        UserId = userId,
+        //        UserMessage = "Attempted to upload ID proof",
+        //        Model = "custom",
+        //        CreatedAt = DateTime.Now
+        //    };
+
+        //    try
+        //    {
+        //        var file = Request.Form.Files["idProof"];
+        //        if (file == null || file.Length == 0)
+        //        {
+        //            chatMessage.BotResponse = "No ID proof uploaded. Please capture a photo of your government-issued ID with your face visible.";
+        //            _chatDbService.SaveMessage(chatMessage);
+        //            return Json(new { success = false, message = chatMessage.BotResponse });
+        //        }
+
+        //        // Check interview attempt limit
+        //        int attemptCount = _chatDbService.GetInterviewAttemptCount(userDetails.Name, userDetails.Email, userDetails.Phone, userDetails.DateOfBirth);
+        //        if (attemptCount >= 2)
+        //        {
+        //            chatMessage.BotResponse = "❌ You have exceeded the maximum number of attempts (2) for this interview.";
+        //            _chatDbService.SaveMessage(chatMessage);
+        //            HttpContext.Session.Remove("ApplicationState");
+        //            HttpContext.Session.Remove("SelectedJob");
+        //            return Json(new { success = false, message = chatMessage.BotResponse, model = "custom", startInterview = false });
+        //        }
+
+        //        var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Uploads", "IDProofs");
+        //        if (!Directory.Exists(uploadsFolder))
+        //        {
+        //            Directory.CreateDirectory(uploadsFolder);
+        //        }
+
+        //        var name = userDetails?.Name?.Replace(" ", "_") ?? userId;
+        //        var fileName = $"{name}_{Guid.NewGuid()}.jpg";
+        //        var filePath = Path.Combine(uploadsFolder, fileName);
+
+        //        using (var stream = new MemoryStream())
+        //        {
+        //            file.CopyTo(stream);
+        //            stream.Position = 0;
+
+        //            // Check for face and ID document
+        //            using (var image = Image.FromStream(stream))
+        //            {
+        //                bool isBlurry = IsImageBlurry(image);
+        //                if (isBlurry)
+        //                {
+        //                    chatMessage.BotResponse = "The ID proof image is blurry or of poor quality. Please retake the photo with your face and ID clearly visible.";
+        //                    _chatDbService.SaveMessage(chatMessage);
+        //                    return Json(new { success = false, message = chatMessage.BotResponse });
+        //                }
+
+        //                stream.Position = 0;
+        //                bool hasFaceAndID = DetectFaceAndID(stream);
+        //                if (!hasFaceAndID)
+        //                {
+        //                    chatMessage.BotResponse = "The image must contain both your face and a government-issued ID (e.g., passport, driver's license). Please retake the photo.";
+        //                    _chatDbService.SaveMessage(chatMessage);
+        //                    return Json(new { success = false, message = chatMessage.BotResponse });
+        //                }
+
+        //                // Extract DOB using OCR
+        //                stream.Position = 0;
+        //                DateTime? dateOfBirth = ExtractDateOfBirthFromID(stream);
+        //                userDetails.DateOfBirth = dateOfBirth;
+
+        //                stream.Position = 0;
+        //                using (var fileStream = new FileStream(filePath, FileMode.Create))
+        //                {
+        //                    stream.CopyTo(fileStream);
+        //                }
+        //            }
+        //        }
+
+        //        // Save ID proof metadata to database
+        //        userDetails.IDProofPath = filePath;
+        //        HttpContext.Session.SetString("UserDetails", JsonConvert.SerializeObject(userDetails));
+        //        _chatDbService.SaveUserDetails(userDetails);
+
+        //        chatMessage.BotResponse = $"ID proof captured and saved: {fileName}";
+        //        _chatDbService.SaveMessage(chatMessage);
+
+        //        // Proceed to interview
+        //        var selectedJob = HttpContext.Session.GetString("SelectedJob") ?? "";
+        //        if (!string.IsNullOrEmpty(selectedJob))
+        //        {
+        //            var (questions, interviewModel) = _chatGPTService.GenerateRandomInterviewQuestionsWithModelAsync(selectedJob).Result;
+        //            var newSession = new InterviewSession
+        //            {
+        //                UserId = userId,
+        //                JobTitle = selectedJob,
+        //                Questions = questions,
+        //                QuestionIndex = 0,
+        //                IsComplete = false,
+        //                TabSwitchCount = 0
+        //            };
+        //            _chatDbService.SaveInterviewSession(newSession);
+        //            var response = $"🧪 Starting interview for {selectedJob}.\n❓ Question 1: {questions[0]}";
+        //            chatMessage.BotResponse = response;
+        //            _chatDbService.SaveMessage(chatMessage);
+        //            return Json(new { success = true, response, model = interviewModel, startInterview = true });
+        //        }
+        //        else
+        //        {
+        //            chatMessage.BotResponse = "❌ No job selected. Please start the application process again or upload your resume to find suitable jobs.";
+        //            _chatDbService.SaveMessage(chatMessage);
+        //            return Json(new { success = false, message = chatMessage.BotResponse, model = "custom", startInterview = false });
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "Error uploading ID proof.");
+        //        chatMessage.BotResponse = "Error uploading ID proof. Please try again.";
+        //        _chatDbService.SaveMessage(chatMessage);
+        //        return Json(new { success = false, message = chatMessage.BotResponse, model = "error" });
+        //    }
+        //}
+
         [HttpPost]
         public IActionResult UploadIDProof()
         {
@@ -640,7 +767,7 @@ namespace ChatBot.Controllers
                 {
                     chatMessage.BotResponse = "No ID proof uploaded. Please capture a photo of your government-issued ID with your face visible.";
                     _chatDbService.SaveMessage(chatMessage);
-                    return Json(new { success = false, message = chatMessage.BotResponse });
+                    return Json(new { success = false, message = chatMessage.BotResponse, reason = "no_file" });
                 }
 
                 // Check interview attempt limit
@@ -651,7 +778,7 @@ namespace ChatBot.Controllers
                     _chatDbService.SaveMessage(chatMessage);
                     HttpContext.Session.Remove("ApplicationState");
                     HttpContext.Session.Remove("SelectedJob");
-                    return Json(new { success = false, message = chatMessage.BotResponse, model = "custom", startInterview = false });
+                    return Json(new { success = false, message = chatMessage.BotResponse, reason = "attempt_limit_exceeded", model = "custom", startInterview = false });
                 }
 
                 var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Uploads", "IDProofs");
@@ -677,7 +804,7 @@ namespace ChatBot.Controllers
                         {
                             chatMessage.BotResponse = "The ID proof image is blurry or of poor quality. Please retake the photo with your face and ID clearly visible.";
                             _chatDbService.SaveMessage(chatMessage);
-                            return Json(new { success = false, message = chatMessage.BotResponse });
+                            return Json(new { success = false, message = chatMessage.BotResponse, reason = "blurry_image" });
                         }
 
                         stream.Position = 0;
@@ -686,10 +813,9 @@ namespace ChatBot.Controllers
                         {
                             chatMessage.BotResponse = "The image must contain both your face and a government-issued ID (e.g., passport, driver's license). Please retake the photo.";
                             _chatDbService.SaveMessage(chatMessage);
-                            return Json(new { success = false, message = chatMessage.BotResponse });
+                            return Json(new { success = false, message = chatMessage.BotResponse, reason = "no_face_or_id" });
                         }
 
-                        // Extract DOB using OCR
                         stream.Position = 0;
                         DateTime? dateOfBirth = ExtractDateOfBirthFromID(stream);
                         userDetails.DateOfBirth = dateOfBirth;
@@ -702,7 +828,6 @@ namespace ChatBot.Controllers
                     }
                 }
 
-                // Save ID proof metadata to database
                 userDetails.IDProofPath = filePath;
                 HttpContext.Session.SetString("UserDetails", JsonConvert.SerializeObject(userDetails));
                 _chatDbService.SaveUserDetails(userDetails);
@@ -710,7 +835,6 @@ namespace ChatBot.Controllers
                 chatMessage.BotResponse = $"ID proof captured and saved: {fileName}";
                 _chatDbService.SaveMessage(chatMessage);
 
-                // Proceed to interview
                 var selectedJob = HttpContext.Session.GetString("SelectedJob") ?? "";
                 if (!string.IsNullOrEmpty(selectedJob))
                 {
@@ -734,7 +858,7 @@ namespace ChatBot.Controllers
                 {
                     chatMessage.BotResponse = "❌ No job selected. Please start the application process again or upload your resume to find suitable jobs.";
                     _chatDbService.SaveMessage(chatMessage);
-                    return Json(new { success = false, message = chatMessage.BotResponse, model = "custom", startInterview = false });
+                    return Json(new { success = false, message = chatMessage.BotResponse, reason = "no_job_selected", model = "custom", startInterview = false });
                 }
             }
             catch (Exception ex)
@@ -742,7 +866,7 @@ namespace ChatBot.Controllers
                 _logger.LogError(ex, "Error uploading ID proof.");
                 chatMessage.BotResponse = "Error uploading ID proof. Please try again.";
                 _chatDbService.SaveMessage(chatMessage);
-                return Json(new { success = false, message = chatMessage.BotResponse, model = "error" });
+                return Json(new { success = false, message = chatMessage.BotResponse, reason = "exception", model = "error" });
             }
         }
 
@@ -793,10 +917,76 @@ namespace ChatBot.Controllers
             }
         }
 
+        //private bool DetectFaceAndID(Stream imageStream)
+        //{
+        //    try
+        //    {
+        //        imageStream.Position = 0;
+        //        byte[] imageBytes;
+        //        using (var ms = new MemoryStream())
+        //        {
+        //            imageStream.CopyTo(ms);
+        //            imageBytes = ms.ToArray();
+        //        }
+
+        //        using var mat = Cv2.ImDecode(imageBytes, ImreadModes.Color);
+        //        if (mat.Empty())
+        //        {
+        //            _logger.LogWarning("Failed to decode image for face and ID detection.");
+        //            return false;
+        //        }
+
+        //        // Load Haar cascade for face detection
+        //        using var faceCascade = new CascadeClassifier("haarcascade_frontalface_default.xml");
+
+        //        // Detect faces
+        //        var faces = faceCascade.DetectMultiScale(mat, scaleFactor: 1.1, minNeighbors: 5, minSize: new OpenCvSharp.Size(30, 30));
+        //        if (faces.Length == 0)
+        //        {
+        //            _logger.LogWarning("No faces detected in the image.");
+        //            return false;
+        //        }
+
+        //        // Use Tesseract for ID detection
+        //        using var engine = new TesseractEngine(@"./tessdata", "eng", EngineMode.Default);
+        //        using var image = Pix.LoadFromMemory(imageBytes);
+        //        using var page = engine.Process(image);
+        //        string text = page.GetText().ToLower();
+        //        bool idDetected = text.Contains("passport") || text.Contains("driver") || text.Contains("license") || text.Contains("id card");
+        //        if (!idDetected)
+        //        {
+        //            _logger.LogWarning("No ID card detected in the image.");
+        //            return false;
+        //        }
+
+        //        return true;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "Error detecting face and ID in image.");
+        //        return false;
+        //    }
+        //}
+
         private bool DetectFaceAndID(Stream imageStream)
         {
             try
             {
+                // Verify file existence
+                string haarCascadePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "haarcascade_frontalface_default.xml");
+                if (!System.IO.File.Exists(haarCascadePath))
+                {
+                    _logger.LogError($"Haar cascade file not found at: {haarCascadePath}");
+                    return false;
+                }
+
+                string tessdataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "tessdata");
+                if (!Directory.Exists(tessdataPath) || !System.IO.File.Exists(Path.Combine(tessdataPath, "eng.traineddata")))
+                {
+                    _logger.LogError($"Tesseract data folder or 'eng.traineddata' not found at: {tessdataPath}");
+                    return false;
+                }
+
                 imageStream.Position = 0;
                 byte[] imageBytes;
                 using (var ms = new MemoryStream())
@@ -805,6 +995,9 @@ namespace ChatBot.Controllers
                     imageBytes = ms.ToArray();
                 }
 
+                // Log image size for debugging
+                _logger.LogInformation($"Image size: {imageBytes.Length} bytes");
+
                 using var mat = Cv2.ImDecode(imageBytes, ImreadModes.Color);
                 if (mat.Empty())
                 {
@@ -812,26 +1005,63 @@ namespace ChatBot.Controllers
                     return false;
                 }
 
-                // Load Haar cascade for face detection
-                using var faceCascade = new CascadeClassifier("haarcascade_frontalface_default.xml");
+                // Convert to grayscale for face detection
+                using var gray = new Mat();
+                Cv2.CvtColor(mat, gray, ColorConversionCodes.BGR2GRAY);
+                Cv2.EqualizeHist(gray, gray); // Improve contrast
 
-                // Detect faces
-                var faces = faceCascade.DetectMultiScale(mat, scaleFactor: 1.1, minNeighbors: 5, minSize: new OpenCvSharp.Size(30, 30));
+                // Load Haar cascade for face detection
+                using var faceCascade = new CascadeClassifier(haarCascadePath);
+
+                // Detect faces with slightly more lenient parameters
+                var faces = faceCascade.DetectMultiScale(
+                    image: gray,
+                    scaleFactor: 1.05, // More sensitive scaling
+                    minNeighbors: 3,   // Less strict neighbor requirement
+                    flags: HaarDetectionTypes.ScaleImage,
+                    minSize: new OpenCvSharp.Size(20, 20) // Smaller minimum face size
+                );
+                _logger.LogInformation($"Detected {faces.Length} faces in the image.");
                 if (faces.Length == 0)
                 {
                     _logger.LogWarning("No faces detected in the image.");
                     return false;
                 }
 
+                // Preprocess image for Tesseract
+                using var tesseractMat = new Mat();
+                Cv2.CvtColor(mat, tesseractMat, ColorConversionCodes.BGR2GRAY);
+                Cv2.Threshold(tesseractMat, tesseractMat, 0, 255, ThresholdTypes.Binary | ThresholdTypes.Otsu);
+                // Resize to increase DPI for better OCR (target ~300 DPI)
+                double scaleFactor = 300.0 / 72.0; // Assuming input is ~72 DPI
+                Cv2.Resize(tesseractMat, tesseractMat, new OpenCvSharp.Size(0, 0), scaleFactor, scaleFactor, InterpolationFlags.Linear);
+
+                // Save preprocessed image for debugging
+                var tempPath = Path.Combine(Path.GetTempPath(), $"preprocessed_id_{Guid.NewGuid()}.jpg");
+                Cv2.ImWrite(tempPath, tesseractMat);
+                _logger.LogInformation($"Preprocessed image saved for debugging at: {tempPath}");
+
                 // Use Tesseract for ID detection
-                using var engine = new TesseractEngine(@"./tessdata", "eng", EngineMode.Default);
+                using var engine = new TesseractEngine(tessdataPath, "eng", EngineMode.Default);
                 using var image = Pix.LoadFromMemory(imageBytes);
                 using var page = engine.Process(image);
-                string text = page.GetText().ToLower();
-                bool idDetected = text.Contains("passport") || text.Contains("driver") || text.Contains("license") || text.Contains("id card");
+                string text = page.GetText()?.ToLower() ?? "";
+                _logger.LogInformation($"Tesseract extracted text: {text}");
+
+                // Expanded keyword list for ID detection
+                bool idDetected = text.Contains("passport") ||
+                                  text.Contains("driver") ||
+                                  text.Contains("license") ||
+                                  text.Contains("licence") ||
+                                  text.Contains("id card") ||
+                                  text.Contains("identification") ||
+                                  text.Contains("government") ||
+                                  text.Contains("card") ||
+                                  text.Contains("permit") ||
+                                  text.Contains("identity");
                 if (!idDetected)
                 {
-                    _logger.LogWarning("No ID card detected in the image.");
+                    _logger.LogWarning("No ID card detected in the image. Keywords not found.");
                     return false;
                 }
 
