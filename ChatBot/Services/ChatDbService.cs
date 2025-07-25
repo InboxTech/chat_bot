@@ -2,9 +2,12 @@
 using ChatBot.Models;
 using Newtonsoft.Json;
 using System;
-using System.IO;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
+using System.IO;
+using System.Text;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace ChatBot.Services
@@ -29,9 +32,32 @@ namespace ChatBot.Services
                 using var conn = new SqlConnection(_connectionString);
                 conn.Open();
 
-                var cmd = new SqlCommand(@"
-                    INSERT INTO UserDetails (UserId, Name, Phone, Email, Experience, EmploymentStatus, Reason, CreatedAt, IDProofPath, DateOfBirth)
-                    VALUES (@UserId, @Name, @Phone, @Email, @Experience, @EmploymentStatus, @Reason, @CreatedAt, @IDProofPath, @DateOfBirth)", conn);
+                // Check if user already exists
+                var checkCmd = new SqlCommand("SELECT COUNT(*) FROM UserDetails WHERE UserId = @UserId", conn);
+                checkCmd.Parameters.AddWithValue("@UserId", user.UserId ?? (object)DBNull.Value);
+                bool userExists = (int)checkCmd.ExecuteScalar() > 0;
+
+                SqlCommand cmd;
+                if (userExists)
+                {
+                    // Update existing record
+                    cmd = new SqlCommand(@"
+                        UPDATE UserDetails
+                        SET Name = @Name, Phone = @Phone, Email = @Email, Experience = @Experience, 
+                            EmploymentStatus = @EmploymentStatus, Reason = @Reason, CreatedAt = @CreatedAt, 
+                            IDProofPath = @IDProofPath, IDProofType = @IDProofType, ExtractedName = @ExtractedName, 
+                            DateOfBirth = @DateOfBirth
+                        WHERE UserId = @UserId", conn);
+                }
+                else
+                {
+                    // Insert new record
+                    cmd = new SqlCommand(@"
+                        INSERT INTO UserDetails (UserId, Name, Phone, Email, Experience, EmploymentStatus, Reason, 
+                            CreatedAt, IDProofPath, IDProofType, ExtractedName, DateOfBirth)
+                        VALUES (@UserId, @Name, @Phone, @Email, @Experience, @EmploymentStatus, @Reason, 
+                            @CreatedAt, @IDProofPath, @IDProofType, @ExtractedName, @DateOfBirth)", conn);
+                }
 
                 cmd.Parameters.AddWithValue("@UserId", user.UserId ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@Name", user.Name ?? (object)DBNull.Value);
@@ -42,6 +68,8 @@ namespace ChatBot.Services
                 cmd.Parameters.AddWithValue("@Reason", user.Reason ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@CreatedAt", user.CreatedAt == default ? DateTime.Now : user.CreatedAt);
                 cmd.Parameters.AddWithValue("@IDProofPath", user.IDProofPath ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@IDProofType", user.IDProofType ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@ExtractedName", user.ExtractedName ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@DateOfBirth", user.DateOfBirth.HasValue ? user.DateOfBirth.Value : (object)DBNull.Value);
 
                 cmd.ExecuteNonQuery();
@@ -70,7 +98,7 @@ namespace ChatBot.Services
                         AND (Email = @Email OR @Email IS NULL)
                         AND (Phone = @Phone OR @Phone IS NULL)
                         AND (DateOfBirth = @DateOfBirth OR @DateOfBirth IS NULL)
-                    )", conn);
+                    ) AND IsComplete = 0", conn);
 
                 cmd.Parameters.AddWithValue("@Name", string.IsNullOrEmpty(name) ? (object)DBNull.Value : name);
                 cmd.Parameters.AddWithValue("@Email", string.IsNullOrEmpty(email) ? (object)DBNull.Value : email);
@@ -83,6 +111,25 @@ namespace ChatBot.Services
             {
                 _logger.LogError(ex, "Error counting interview attempts for Name: {Name}, Email: {Email}, Phone: {Phone}, DOB: {DateOfBirth}", name, email, phone, dateOfBirth);
                 throw;
+            }
+        }
+
+        public bool VerifyIDProof(string userId, string extractedName, string providedName)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(extractedName) || string.IsNullOrEmpty(providedName))
+                    return false;
+
+                // Case-insensitive name comparison, ignoring spaces and special characters
+                var cleanExtracted = Regex.Replace(extractedName.ToLower(), @"\s+|[^a-zA-Z]", "");
+                var cleanProvided = Regex.Replace(providedName.ToLower(), @"\s+|[^a-zA-Z]", "");
+                return cleanExtracted == cleanProvided;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error verifying ID proof for UserId: {UserId}", userId);
+                return false;
             }
         }
 
@@ -203,7 +250,7 @@ namespace ChatBot.Services
                 if (messages == null || messages.Count == 0)
                     return;
 
-                var sb = new System.Text.StringBuilder();
+                var sb = new StringBuilder();
                 var now = DateTime.Now;
                 var sessionStartTimeKey = $"SessionStartTime_{userId}";
                 var sessionFileNameKey = $"SessionFileName_{userId}";

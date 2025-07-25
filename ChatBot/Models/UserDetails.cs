@@ -6,11 +6,13 @@
         public string Name { get; set; }
         public string Phone { get; set; }
         public string Email { get; set; }
-        public string Experience { get; set; }
         public string EmploymentStatus { get; set; }
+        public string Experience { get; set; }
         public string Reason { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public string IDProofPath { get; set; }
         public DateTime? DateOfBirth { get; set; }
+        public string IDProofPath { get; set; }
+        public string IDProofType { get; set; } // New: e.g., Passport, Driver's License
+        public string ExtractedName { get; set; } // New: Name extracted from ID proof
+        public DateTime CreatedAt { get; set; }
     }
 }

@@ -98,6 +98,25 @@
             margin-top: 10px;
         }
 
+        .id-proof-btn {
+            background: var(--warning-color);
+            color: var(--white);
+            padding: 0.75rem 1.25rem;
+            border-radius: 25px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            border: none;
+        }
+
+            .id-proof-btn:hover {
+                background: darken(var(--warning-color), 10%);
+                transform: translateY(-2px);
+                box-shadow: var(--shadow-lg);
+            }
+
         .webcam-btn {
             background: var(--primary-color);
             color: var(--white);
@@ -213,7 +232,7 @@
     </div>
 
     <!-- Input Area -->
-    <div class="chat-input">
+   @*  <div class="chat-input">
         <div class="input-wrapper">
             <textarea class="message-input" id="messageInput" placeholder="Type your message..." rows="1" oninput="autoResize(this)" onkeypress="handleKeyPress(event)"></textarea>
             <div class="input-actions">
@@ -224,6 +243,28 @@
                     <i class="fas fa-paperclip"></i> Resume
                 </button>
                 <input type="file" id="fileInput" accept=".pdf,.docx" />
+                <button class="input-btn send-btn" id="sendButton" title="Send Message" onclick="sendMessage()">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div> *@
+
+    <div class="chat-input">
+        <div class="input-wrapper">
+            <textarea class="message-input" id="messageInput" placeholder="Type your message..." rows="1" oninput="autoResize(this)" onkeypress="handleKeyPress(event)"></textarea>
+            <div class="input-actions">
+                <button class="input-btn voice-btn" id="micButton" title="Start Speech Recognition" onclick="startSpeechRecognition()">
+                    <i class="fas fa-microphone"></i>
+                </button>
+                <button class="upload-btn" onclick="triggerResumeInput()">
+                    <i class="fas fa-paperclip"></i> Resume
+                </button>
+                <button class="upload-btn id-proof-btn" id="idProofUploadBtn" onclick="triggerIDProofInput()" style="display: none;">
+                    <i class="fas fa-id-card"></i> ID Proof
+                </button>
+                <input type="file" id="resumeInput" accept=".pdf,.docx" />
+                <input type="file" id="idProofInput" accept=".jpg,.jpeg,.png,.pdf" style="display: none;" />
                 <button class="input-btn send-btn" id="sendButton" title="Send Message" onclick="sendMessage()">
                     <i class="fas fa-paper-plane"></i>
                 </button>
@@ -513,6 +554,14 @@
             autoResize(document.getElementById('messageInput'));
         }
 
+                function triggerResumeInput() {
+            document.getElementById('resumeInput').click();
+        }
+
+        function triggerIDProofInput() {
+            document.getElementById('idProofInput').click();
+        }
+
         function sendMessage() {
             const input = document.getElementById('messageInput');
             const message = input.value.trim();
@@ -542,14 +591,22 @@
                     typingIndicator.style.display = 'none';
                     appendMessage('bot', response.response);
 
-                    if (response.response.includes('Please upload a clear photo of your government-issued ID')) {
-                        startWebcam();
-                    } else if (response.startInterview) {
+                    // Show ID proof upload button if prompted
+                    const idProofBtn = document.getElementById('idProofUploadBtn');
+                    if (response.response.includes('Please upload a clear photo or PDF of your government-issued ID')) {
+                        idProofBtn.style.display = 'inline-block';
+                        startWebcam(); // Still allow webcam capture as an option
+                    } else {
+                        idProofBtn.style.display = 'none';
+                    }
+
+                    if (response.startInterview) {
                         isInterviewActive = true;
                         startWebcam();
                     } else if (response.response.includes('interview will not start') || response.response.includes('Thank you for completing the interview')) {
                         isInterviewActive = false;
                         stopWebcam();
+                        idProofBtn.style.display = 'none';
                     }
                 },
                 error: function() {
@@ -557,7 +614,147 @@
                     appendMessage('bot', '❌ Sorry, I encountered an error. Please try again.');
                 }
             });
+
+            input.value = '';
+            autoResize(input);
         }
+
+        document.getElementById('idProofInput').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const validExtensions = ['.jpg', '.jpeg', '.png', '.pdf'];
+            const maxSize = 5 * 1024 * 1024;
+            const extension = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+
+            if (!validExtensions.includes(extension)) {
+                alert('Please upload a JPG, PNG, or PDF file.');
+                event.target.value = '';
+                return;
+            }
+
+            if (file.size > maxSize) {
+                alert('File size exceeds 5MB. Please upload a smaller file.');
+                event.target.value = '';
+                return;
+            }
+
+            const welcomeScreen = document.getElementById('welcomeScreen');
+            if (welcomeScreen) {
+                welcomeScreen.style.display = 'none';
+            }
+
+            appendMessage('user', `📷 Uploaded ID proof: ${file.name}`);
+
+            const typingIndicator = document.getElementById('typingIndicator');
+            typingIndicator.style.display = 'flex';
+
+            const formData = new FormData();
+            formData.append('idProof', file);
+            $.ajax({
+                url: '/Chat/UploadIDProof',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    typingIndicator.style.display = 'none';
+                    if (response.success) {
+                        appendMessage('bot', response.response);
+                        if (response.startInterview) {
+                            isInterviewActive = true;
+                            startWebcam();
+                        }
+                        document.getElementById('idProofUploadBtn').style.display = 'none';
+                    } else {
+                        let errorMessage = response.message;
+                        if (response.reason === 'no_file') {
+                            errorMessage = 'No ID proof was uploaded. Please upload again.';
+                        } else if (response.reason === 'file_too_large') {
+                            errorMessage = 'File size exceeds 5MB. Please upload a smaller file.';
+                        } else if (response.reason === 'invalid_format') {
+                            errorMessage = 'Invalid file format. Please upload a JPG, PNG, or PDF file.';
+                        } else if (response.reason === 'blurry_image') {
+                            errorMessage = 'The image is blurry. Please upload a clearer photo.';
+                        } else if (response.reason === 'no_content') {
+                            errorMessage = 'Could not extract content from the ID proof. Please upload a clear photo or PDF.';
+                        } else if (response.reason === 'unknown_id_type') {
+                            errorMessage = 'Could not identify the ID proof type. Please upload a government-issued ID.';
+                        } else if (response.reason === 'no_name') {
+                            errorMessage = 'Could not extract a name from the ID proof. Please ensure the ID contains a readable name.';
+                        } else if (response.reason === 'name_mismatch') {
+                            errorMessage = 'The name on the ID proof does not match the provided name. Please upload your own ID proof.';
+                        } else if (response.reason === 'attempt_limit_exceeded') {
+                            errorMessage = response.message;
+                        } else if (response.reason === 'no_job_selected') {
+                            errorMessage = 'No job selected. Please start the application process again.';
+                        } else if (response.reason === 'exception') {
+                            errorMessage = 'An error occurred while processing the ID proof. Please try again.';
+                        }
+                        appendMessage('bot', errorMessage);
+                        document.getElementById('idProofUploadBtn').style.display = 'inline-block'; // Allow retry
+                    }
+                    event.target.value = null;
+                },
+                error: function() {
+                    typingIndicator.style.display = 'none';
+                    appendMessage('bot', '❌ Error uploading ID proof. Please try again.');
+                    event.target.value = null;
+                }
+            });
+        });
+
+        // Update resumeInput ID reference
+        document.getElementById('resumeInput').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const validExtensions = ['.pdf', '.docx'];
+            const maxSize = 5 * 1024 * 1024;
+            const extension = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+
+            if (!validExtensions.includes(extension)) {
+                alert('Please upload a PDF or Word (.docx) file.');
+                event.target.value = '';
+                return;
+            }
+
+            if (file.size > maxSize) {
+                alert('File size exceeds 5MB. Please upload a smaller file.');
+                event.target.value = '';
+                return;
+            }
+
+            const welcomeScreen = document.getElementById('welcomeScreen');
+            if (welcomeScreen) {
+                welcomeScreen.style.display = 'none';
+            }
+
+            appendMessage('user', `📄 Uploaded resume: ${file.name}`);
+
+            const typingIndicator = document.getElementById('typingIndicator');
+            typingIndicator.style.display = 'flex';
+
+            const formData = new FormData();
+            formData.append('resume', file);
+            $.ajax({
+                url: '/Chat/UploadResume',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    typingIndicator.style.display = 'none';
+                    appendMessage('bot', response.response);
+                    event.target.value = '';
+                },
+                error: function() {
+                    typingIndicator.style.display = 'none';
+                    appendMessage('bot', '❌ Error uploading resume.');
+                    event.target.value = '';
+                }
+            });
+        });
 
         document.getElementById('fileInput').addEventListener('change', function(event) {
             const file = event.target.files[0];
