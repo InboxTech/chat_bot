@@ -6,6 +6,7 @@ namespace ChatBot.Models
     public class InterviewSession
     {
         public int Id { get; set; }
+
         public string UserId { get; set; } = "";
         public string JobTitle { get; set; } = "";
         public int QuestionIndex { get; set; } = 0;
