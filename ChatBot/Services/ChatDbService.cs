@@ -45,8 +45,7 @@ namespace ChatBot.Services
                         UPDATE UserDetails
                         SET Name = @Name, Phone = @Phone, Email = @Email, Experience = @Experience, 
                             EmploymentStatus = @EmploymentStatus, Reason = @Reason, CreatedAt = @CreatedAt, 
-                            IDProofPath = @IDProofPath, IDProofType = @IDProofType, ExtractedName = @ExtractedName, 
-                            DateOfBirth = @DateOfBirth
+                            IDProofPath = @IDProofPath, IDProofType = @IDProofType
                         WHERE UserId = @UserId", conn);
                 }
                 else
@@ -54,9 +53,9 @@ namespace ChatBot.Services
                     // Insert new record
                     cmd = new SqlCommand(@"
                         INSERT INTO UserDetails (UserId, Name, Phone, Email, Experience, EmploymentStatus, Reason, 
-                            CreatedAt, IDProofPath, IDProofType, ExtractedName, DateOfBirth)
+                            CreatedAt, IDProofPath, IDProofType)
                         VALUES (@UserId, @Name, @Phone, @Email, @Experience, @EmploymentStatus, @Reason, 
-                            @CreatedAt, @IDProofPath, @IDProofType, @ExtractedName, @DateOfBirth)", conn);
+                            @CreatedAt, @IDProofPath, @IDProofType)", conn);
                 }
 
                 cmd.Parameters.AddWithValue("@UserId", user.UserId ?? (object)DBNull.Value);
@@ -69,8 +68,6 @@ namespace ChatBot.Services
                 cmd.Parameters.AddWithValue("@CreatedAt", user.CreatedAt == default ? DateTime.Now : user.CreatedAt);
                 cmd.Parameters.AddWithValue("@IDProofPath", user.IDProofPath ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@IDProofType", user.IDProofType ?? (object)DBNull.Value);
-                cmd.Parameters.AddWithValue("@ExtractedName", user.ExtractedName ?? (object)DBNull.Value);
-                cmd.Parameters.AddWithValue("@DateOfBirth", user.DateOfBirth.HasValue ? user.DateOfBirth.Value : (object)DBNull.Value);
 
                 cmd.ExecuteNonQuery();
             }
@@ -97,39 +94,40 @@ namespace ChatBot.Services
                         WHERE (Name = @Name OR @Name IS NULL)
                         AND (Email = @Email OR @Email IS NULL)
                         AND (Phone = @Phone OR @Phone IS NULL)
-                        AND (DateOfBirth = @DateOfBirth OR @DateOfBirth IS NULL)
-                    ) AND IsComplete = 0", conn);
+                    ) AND IsComplete = 1", conn);
 
                 cmd.Parameters.AddWithValue("@Name", string.IsNullOrEmpty(name) ? (object)DBNull.Value : name);
                 cmd.Parameters.AddWithValue("@Email", string.IsNullOrEmpty(email) ? (object)DBNull.Value : email);
                 cmd.Parameters.AddWithValue("@Phone", string.IsNullOrEmpty(phone) ? (object)DBNull.Value : phone);
-                cmd.Parameters.AddWithValue("@DateOfBirth", dateOfBirth.HasValue ? dateOfBirth.Value : (object)DBNull.Value);
 
                 return (int)cmd.ExecuteScalar();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error counting interview attempts for Name: {Name}, Email: {Email}, Phone: {Phone}, DOB: {DateOfBirth}", name, email, phone, dateOfBirth);
+                _logger.LogError(ex, "Error counting interview attempts for Name: {Name}, Email: {Email}, Phone: {Phone}", name, email, phone);
                 throw;
             }
         }
 
-        public bool VerifyIDProof(string userId, string extractedName, string providedName)
+        public void MarkInterviewAsSubmitted(string sessionId)
         {
             try
             {
-                if (string.IsNullOrEmpty(extractedName) || string.IsNullOrEmpty(providedName))
-                    return false;
+                using var conn = new SqlConnection(_connectionString);
+                conn.Open();
 
-                // Case-insensitive name comparison, ignoring spaces and special characters
-                var cleanExtracted = Regex.Replace(extractedName.ToLower(), @"\s+|[^a-zA-Z]", "");
-                var cleanProvided = Regex.Replace(providedName.ToLower(), @"\s+|[^a-zA-Z]", "");
-                return cleanExtracted == cleanProvided;
+                var cmd = new SqlCommand(@"
+                    UPDATE InterviewSessions 
+                    SET IsSubmitted = 1
+                    WHERE Id = @SessionId", conn);
+
+                cmd.Parameters.AddWithValue("@SessionId", sessionId);
+                cmd.ExecuteNonQuery();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error verifying ID proof for UserId: {UserId}", userId);
-                return false;
+                _logger.LogError(ex, "Error marking interview session as submitted for SessionId: {SessionId}", sessionId);
+                throw;
             }
         }
 
@@ -157,8 +155,8 @@ namespace ChatBot.Services
             conn.Open();
 
             var cmd = new SqlCommand(@"
-                INSERT INTO InterviewSessions (UserId, JobTitle, QuestionIndex, Questions, Answers, IsComplete, TabSwitchCount, CreatedAt)
-                VALUES (@UserId, @JobTitle, @QuestionIndex, @Questions, @Answers, @IsComplete, @TabSwitchCount, @CreatedAt);
+                INSERT INTO InterviewSessions (UserId, JobTitle, QuestionIndex, Questions, Answers, IsComplete, IsSubmitted, TabSwitchCount, CreatedAt)
+                VALUES (@UserId, @JobTitle, @QuestionIndex, @Questions, @Answers, @IsComplete, @IsSubmitted, @TabSwitchCount, @CreatedAt);
                 SELECT SCOPE_IDENTITY();", conn);
 
             cmd.Parameters.AddWithValue("@UserId", session.UserId);
@@ -167,6 +165,7 @@ namespace ChatBot.Services
             cmd.Parameters.AddWithValue("@Questions", JsonConvert.SerializeObject(session.Questions));
             cmd.Parameters.AddWithValue("@Answers", JsonConvert.SerializeObject(session.Answers));
             cmd.Parameters.AddWithValue("@IsComplete", session.IsComplete);
+            cmd.Parameters.AddWithValue("@IsSubmitted", false);
             cmd.Parameters.AddWithValue("@TabSwitchCount", session.TabSwitchCount);
             cmd.Parameters.AddWithValue("@CreatedAt", DateTime.Now);
 
@@ -196,6 +195,7 @@ namespace ChatBot.Services
                     Questions = JsonConvert.DeserializeObject<List<string>>((string)reader["Questions"]) ?? new(),
                     Answers = JsonConvert.DeserializeObject<List<string>>((string)reader["Answers"]) ?? new(),
                     IsComplete = (bool)reader["IsComplete"],
+                    IsSubmitted = (bool)reader["IsSubmitted"],
                     TabSwitchCount = (int)reader["TabSwitchCount"],
                     CreatedAt = (DateTime)reader["CreatedAt"]
                 };

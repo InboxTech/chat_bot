@@ -15,5 +15,6 @@ namespace ChatBot.Models
         public int TabSwitchCount { get; set; }
 
         public bool IsComplete { get; set; }
+        public bool IsSubmitted { get; set; }
     }
 }

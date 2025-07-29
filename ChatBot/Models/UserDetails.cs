@@ -12,7 +12,6 @@
         public DateTime? DateOfBirth { get; set; }
         public string IDProofPath { get; set; }
         public string IDProofType { get; set; } // New: e.g., Passport, Driver's License
-        public string ExtractedName { get; set; } // New: Name extracted from ID proof
         public DateTime CreatedAt { get; set; }
     }
 }
