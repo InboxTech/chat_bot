@@ -27,6 +27,9 @@ namespace ChatBot.Controllers
         private readonly ILogger<ChatController> _logger;
         private readonly IConfiguration _configuration;
         private readonly List<PreInterviewQuestion> _preInterviewQuestions;
+        private readonly string _resumeFolder;
+        private readonly string _idProofFolder;
+        private readonly string _interviewVideoFolder;
 
         public ChatController(
             ChatGPTService chatGPTService,
@@ -39,7 +42,10 @@ namespace ChatBot.Controllers
             _logger = logger;
             _configuration = configuration;
             _preInterviewQuestions = configuration.GetSection("PreInterviewQuestions")
-                                                  .Get<List<PreInterviewQuestion>>();
+                                                 .Get<List<PreInterviewQuestion>>();
+            _resumeFolder = configuration.GetSection("UploadPaths:ResumeFolder").Value;
+            _idProofFolder = configuration.GetSection("UploadPaths:IDProofFolder").Value;
+            _interviewVideoFolder = configuration.GetSection("UploadPaths:InterviewVideoFolder").Value;
         }
 
         public class PreInterviewQuestion
@@ -637,6 +643,338 @@ namespace ChatBot.Controllers
             }
         }
 
+        //[HttpPost]
+        //public async Task<IActionResult> UploadResume(IFormFile resume)
+        //{
+        //    string userId = HttpContext.Session.Id;
+        //    string response = "";
+        //    string modelUsed = "custom";
+
+        //    EnsureUserRecord(userId);
+
+        //    try
+        //    {
+        //        if (resume == null || resume.Length == 0)
+        //        {
+        //            response = "❌ No file uploaded. Please upload a PDF or Word document.";
+        //            return Json(new { response, model = modelUsed });
+        //        }
+
+        //        if (resume.Length > 5 * 1024 * 1024) // 5MB limit
+        //        {
+        //            response = "❌ File size exceeds 5MB. Please upload a smaller file.";
+        //            return Json(new { response, model = modelUsed });
+        //        }
+
+        //        var extension = Path.GetExtension(resume.FileName).ToLower();
+        //        if (extension != ".pdf" && extension != ".docx")
+        //        {
+        //            response = "❌ Invalid file format. Please upload a PDF or Word (.docx) document.";
+        //            return Json(new { response, model = modelUsed });
+        //        }
+
+        //        string resumeText;
+        //        using (var stream = new MemoryStream())
+        //        {
+        //            await resume.CopyToAsync(stream);
+        //            stream.Position = 0;
+
+        //            if (extension == ".pdf")
+        //            {
+        //                using (var reader = new PdfReader(stream))
+        //                using (var pdfDoc = new PdfDocument(reader))
+        //                {
+        //                    var text = new StringBuilder();
+        //                    for (int i = 1; i <= pdfDoc.GetNumberOfPages(); i++)
+        //                    {
+        //                        text.Append(PdfTextExtractor.GetTextFromPage(pdfDoc.GetPage(i)));
+        //                    }
+        //                    resumeText = text.ToString();
+        //                }
+        //            }
+        //            else // .docx
+        //            {
+        //                using (var doc = DocX.Load(stream))
+        //                {
+        //                    resumeText = doc.Text;
+        //                }
+        //            }
+        //        }
+
+        //        if (string.IsNullOrWhiteSpace(resumeText))
+        //        {
+        //            response = "❌ Unable to extract content from the resume. Please ensure the file contains readable text.";
+        //            return Json(new { response, model = modelUsed });
+        //        }
+
+        //        HttpContext.Session.SetString("ResumeContent", resumeText);
+
+        //        var (matchingJobs, jobModel) = await _chatGPTService.FindJobsByResumeAsync(resumeText);
+        //        modelUsed = jobModel;
+
+        //        if (matchingJobs.Count > 0)
+        //        {
+        //            response = "🧑‍💻 Based on your resume, here are the matching job openings:\n";
+        //            for (int i = 0; i < matchingJobs.Count; i++)
+        //                response += $"{i + 1}. {matchingJobs[i]}\n";
+
+        //            response += "\nPlease reply with the job title or number you'd like to apply for.";
+        //            HttpContext.Session.SetString("JobList", string.Join("||", matchingJobs));
+        //        }
+        //        else
+        //        {
+        //            response = "❌ No matching job openings found for your resume. You can try asking about other job opportunities or contact us for more information.";
+        //        }
+
+        //        var message = new ChatMessage
+        //        {
+        //            UserId = userId,
+        //            UserMessage = "Uploaded resume",
+        //            BotResponse = response,
+        //            Model = modelUsed,
+        //            CreatedAt = DateTime.Now
+        //        };
+        //        var sessionMessages = HttpContext.Session.GetString("SessionMessages") is string messagesStr
+        //            ? JsonConvert.DeserializeObject<List<ChatMessage>>(messagesStr) ?? new List<ChatMessage>()
+        //            : new List<ChatMessage>();
+        //        sessionMessages.Add(message);
+        //        _chatDbService.SaveMessage(message);
+        //        HttpContext.Session.SetString("SessionMessages", JsonConvert.SerializeObject(sessionMessages));
+
+        //        return Json(new { response, model = modelUsed });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "Error processing resume upload.");
+        //        response = "❌ Error processing your resume. Please try again or contact us.";
+        //        return Json(new { response, model = "error" });
+        //    }
+        //}
+
+        //[HttpPost]
+        //public async Task<IActionResult> UploadIDProof()
+        //{
+        //    var userId = HttpContext.Session.Id;
+        //    var userDetailsStr = HttpContext.Session.GetString("UserDetails");
+        //    var userDetails = userDetailsStr is not null ? JsonConvert.DeserializeObject<UserDetails>(userDetailsStr) : new UserDetails { UserId = userId };
+        //    var chatMessage = new ChatMessage
+        //    {
+        //        UserId = userId,
+        //        UserMessage = "Uploaded ID proof",
+        //        Model = "custom",
+        //        CreatedAt = DateTime.Now
+        //    };
+        //    string response = "";
+
+        //    EnsureUserRecord(userId);
+
+        //    try
+        //    {
+        //        var file = Request.Form.Files["idProof"];
+        //        if (file == null || file.Length == 0)
+        //        {
+        //            response = "No ID proof uploaded. Please upload a JPG, PNG, or PDF of your government-issued ID (e.g., passport, driver's license).";
+        //            chatMessage.BotResponse = response;
+        //            _chatDbService.SaveMessage(chatMessage);
+        //            return Json(new { success = false, message = response, reason = "no_file", model = "custom", startInterview = false });
+        //        }
+
+        //        if (file.Length > 5 * 1024 * 1024)
+        //        {
+        //            response = "File size exceeds 5MB. Please upload a smaller file.";
+        //            chatMessage.BotResponse = response;
+        //            _chatDbService.SaveMessage(chatMessage);
+        //            return Json(new { success = false, message = response, reason = "file_too_large", model = "custom", startInterview = false });
+        //        }
+
+        //        var extension = Path.GetExtension(file.FileName).ToLower();
+        //        if (extension != ".jpg" && extension != ".jpeg" && extension != ".png" && extension != ".pdf")
+        //        {
+        //            response = "Invalid file format. Please upload a JPG, PNG, or PDF file.";
+        //            chatMessage.BotResponse = response;
+        //            _chatDbService.SaveMessage(chatMessage);
+        //            return Json(new { success = false, message = response, reason = "invalid_format", model = "custom", startInterview = false });
+        //        }
+
+        //        int retryCount = HttpContext.Session.GetInt32("IDProofRetryCount") ?? 0;
+        //        if (retryCount >= 3)
+        //        {
+        //            response = "You have exceeded the maximum number of ID proof upload attempts (3). Please contact support or start the application process again.";
+        //            chatMessage.BotResponse = response;
+        //            _chatDbService.SaveMessage(chatMessage);
+        //            HttpContext.Session.Remove("ApplicationState");
+        //            HttpContext.Session.Remove("SelectedJob");
+        //            return Json(new { success = false, message = response, reason = "retry_limit_exceeded", model = "custom", startInterview = false });
+        //        }
+
+        //        int attemptCount = _chatDbService.GetInterviewAttemptCount(userDetails.Name, userDetails.Email, userDetails.Phone, null);
+        //        if (attemptCount >= 1)
+        //        {
+        //            response = "❌ You have already attempted the interview for this position. Only one interview attempt is allowed.";
+        //            chatMessage.BotResponse = response;
+        //            _chatDbService.SaveMessage(chatMessage);
+        //            HttpContext.Session.Remove("ApplicationState");
+        //            HttpContext.Session.Remove("SelectedJob");
+        //            return Json(new { success = false, message = response, reason = "interview_limit_exceeded", model = "custom", startInterview = false });
+        //        }
+
+        //        var userFolderName = string.IsNullOrEmpty(userDetails.Name) ? userId : userDetails.Name.Replace(" ", "_");
+        //        var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "App_Data", "Uploads", "IDProofs", userFolderName);
+        //        if (!Directory.Exists(uploadsFolder))
+        //        {
+        //            Directory.CreateDirectory(uploadsFolder);
+        //        }
+
+        //        var fileName = $"{userFolderName}_{Guid.NewGuid()}{extension}";
+        //        var filePath = Path.Combine(uploadsFolder, fileName);
+
+        //        using (var stream = new FileStream(filePath, FileMode.Create))
+        //        {
+        //            await file.CopyToAsync(stream);
+        //        }
+
+        //        userDetails.IDProofPath = filePath;
+        //        userDetails.IDProofType = extension == ".pdf" ? "PDF Document" : "Image";
+        //        HttpContext.Session.SetString("UserDetails", JsonConvert.SerializeObject(userDetails));
+        //        _chatDbService.SaveUserDetails(userDetails);
+
+        //        HttpContext.Session.SetInt32("IDProofRetryCount", 0);
+        //        response = $"ID proof uploaded and saved: {fileName}";
+        //        chatMessage.BotResponse = response;
+        //        _chatDbService.SaveMessage(chatMessage);
+
+        //        var selectedJob = HttpContext.Session.GetString("SelectedJob") ?? "";
+        //        if (!string.IsNullOrEmpty(selectedJob))
+        //        {
+        //            var nextQuestion = _preInterviewQuestions.FirstOrDefault(q => q.State == "AwaitingInterviewStart");
+        //            if (nextQuestion != null)
+        //            {
+        //                HttpContext.Session.SetString("ApplicationState", nextQuestion.State);
+        //                response = nextQuestion.Prompt;
+        //                chatMessage.BotResponse = response;
+        //                _chatDbService.SaveMessage(chatMessage);
+        //                return Json(new { success = true, response, model = "custom", startInterview = false });
+        //            }
+        //            else
+        //            {
+        //                response = "❌ Invalid application state after ID upload. Please start the application process again.";
+        //                chatMessage.BotResponse = response;
+        //                _chatDbService.SaveMessage(chatMessage);
+        //                return Json(new { success = false, message = response, reason = "invalid_state", model = "custom", startInterview = false });
+        //            }
+        //        }
+        //        else
+        //        {
+        //            response = "❌ No job selected. Please start the application process again or upload your resume to find suitable jobs.";
+        //            chatMessage.BotResponse = response;
+        //            _chatDbService.SaveMessage(chatMessage);
+        //            return Json(new { success = false, message = response, reason = "no_job_selected", model = "custom", startInterview = false });
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "Error uploading ID proof.");
+        //        response = "Error uploading ID proof. Please try again or contact support.";
+        //        chatMessage.BotResponse = response;
+        //        _chatDbService.SaveMessage(chatMessage);
+        //        return Json(new { success = false, message = response, reason = "exception", model = "error", startInterview = false });
+        //    }
+        //}
+
+        //[HttpPost]
+        //public async Task<IActionResult> UploadInterviewVideo()
+        //{
+        //    try
+        //    {
+        //        var file = Request.Form.Files["video"];
+        //        if (file == null || file.Length == 0)
+        //        {
+        //            return BadRequest("No video file uploaded.");
+        //        }
+
+        //        var userId = HttpContext.Session.Id;
+        //        var userDetailsStr = HttpContext.Session.GetString("UserDetails");
+        //        var userDetails = userDetailsStr is not null ? JsonConvert.DeserializeObject<UserDetails>(userDetailsStr) : new UserDetails { UserId = userId };
+
+        //        var userFolderName = string.IsNullOrEmpty(userDetails.Name) ? userId : userDetails.Name.Replace(" ", "_");
+        //        var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "App_Data", "Uploads", "InterviewVideos", userFolderName);
+        //        if (!Directory.Exists(uploadsFolder))
+        //        {
+        //            Directory.CreateDirectory(uploadsFolder);
+        //        }
+
+        //        var fileName = $"{userFolderName}_{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
+        //        var filePath = Path.Combine(uploadsFolder, fileName);
+
+        //        using (var stream = new FileStream(filePath, FileMode.Create))
+        //        {
+        //            await file.CopyToAsync(stream);
+        //        }
+
+        //        var session = _chatDbService.GetLatestSession(userId);
+        //        if (session != null)
+        //        {
+        //            session.VideoPath = filePath;
+        //            _chatDbService.UpdateInterviewSession(session);
+        //        }
+
+        //        var chatMessage = new ChatMessage
+        //        {
+        //            UserId = userId,
+        //            BotResponse = $"Video recorded and saved: {fileName}",
+        //            CreatedAt = DateTime.Now,
+        //            Model = "custom"
+        //        };
+        //        _chatDbService.SaveMessage(chatMessage);
+
+        //        return Json(new { fileName });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "Error uploading interview video");
+        //        return StatusCode(500, "Error uploading video");
+        //    }
+        //}
+
+        [HttpPost]
+        public IActionResult UpdateTabSwitchCount([FromBody] TabSwitchModel data)
+        {
+            string userId = HttpContext.Session.Id;
+            _chatDbService.UpdateTabSwitchCount(userId, data.Count);
+            return Ok();
+        }
+
+        public class TabSwitchModel
+        {
+            public int Count { get; set; }
+        }
+
+        //[HttpGet]
+        //public IActionResult ViewInterviewVideo(string fileName)
+        //{
+        //    var filePath = Path.Combine(Directory.GetCurrentDirectory(), "App_Data", "Uploads", "InterviewVideos", fileName);
+        //    if (!System.IO.File.Exists(filePath))
+        //    {
+        //        return NotFound("Video not found.");
+        //    }
+
+        //    var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
+        //    return File(stream, "video/webm");
+        //}
+
+        //[HttpGet]
+        //public IActionResult ViewIDProof(string fileName)
+        //{
+        //    var filePath = Path.Combine(Directory.GetCurrentDirectory(), "App_Data", "Uploads", "IDProofs", fileName);
+        //    if (!System.IO.File.Exists(filePath))
+        //    {
+        //        return NotFound("ID proof not found.");
+        //    }
+
+        //    var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
+        //    return File(stream, "image/jpeg");
+        //}
+
         [HttpPost]
         public async Task<IActionResult> UploadResume(IFormFile resume)
         {
@@ -672,7 +1010,6 @@ namespace ChatBot.Controllers
                 {
                     await resume.CopyToAsync(stream);
                     stream.Position = 0;
-
                     if (extension == ".pdf")
                     {
                         using (var reader = new PdfReader(stream))
@@ -711,7 +1048,6 @@ namespace ChatBot.Controllers
                     response = "🧑‍💻 Based on your resume, here are the matching job openings:\n";
                     for (int i = 0; i < matchingJobs.Count; i++)
                         response += $"{i + 1}. {matchingJobs[i]}\n";
-
                     response += "\nPlease reply with the job title or number you'd like to apply for.";
                     HttpContext.Session.SetString("JobList", string.Join("||", matchingJobs));
                 }
@@ -728,9 +1064,11 @@ namespace ChatBot.Controllers
                     Model = modelUsed,
                     CreatedAt = DateTime.Now
                 };
+
                 var sessionMessages = HttpContext.Session.GetString("SessionMessages") is string messagesStr
                     ? JsonConvert.DeserializeObject<List<ChatMessage>>(messagesStr) ?? new List<ChatMessage>()
                     : new List<ChatMessage>();
+
                 sessionMessages.Add(message);
                 _chatDbService.SaveMessage(message);
                 HttpContext.Session.SetString("SessionMessages", JsonConvert.SerializeObject(sessionMessages));
@@ -758,8 +1096,8 @@ namespace ChatBot.Controllers
                 Model = "custom",
                 CreatedAt = DateTime.Now
             };
-            string response = "";
 
+            string response = "";
             EnsureUserRecord(userId);
 
             try
@@ -813,7 +1151,7 @@ namespace ChatBot.Controllers
                 }
 
                 var userFolderName = string.IsNullOrEmpty(userDetails.Name) ? userId : userDetails.Name.Replace(" ", "_");
-                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "App_Data", "Uploads", "IDProofs", userFolderName);
+                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), _idProofFolder, userFolderName);
                 if (!Directory.Exists(uploadsFolder))
                 {
                     Directory.CreateDirectory(uploadsFolder);
@@ -821,7 +1159,6 @@ namespace ChatBot.Controllers
 
                 var fileName = $"{userFolderName}_{Guid.NewGuid()}{extension}";
                 var filePath = Path.Combine(uploadsFolder, fileName);
-
                 using (var stream = new FileStream(filePath, FileMode.Create))
                 {
                     await file.CopyToAsync(stream);
@@ -831,8 +1168,8 @@ namespace ChatBot.Controllers
                 userDetails.IDProofType = extension == ".pdf" ? "PDF Document" : "Image";
                 HttpContext.Session.SetString("UserDetails", JsonConvert.SerializeObject(userDetails));
                 _chatDbService.SaveUserDetails(userDetails);
-
                 HttpContext.Session.SetInt32("IDProofRetryCount", 0);
+
                 response = $"ID proof uploaded and saved: {fileName}";
                 chatMessage.BotResponse = response;
                 _chatDbService.SaveMessage(chatMessage);
@@ -891,7 +1228,7 @@ namespace ChatBot.Controllers
                 var userDetails = userDetailsStr is not null ? JsonConvert.DeserializeObject<UserDetails>(userDetailsStr) : new UserDetails { UserId = userId };
 
                 var userFolderName = string.IsNullOrEmpty(userDetails.Name) ? userId : userDetails.Name.Replace(" ", "_");
-                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "App_Data", "Uploads", "InterviewVideos", userFolderName);
+                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), _interviewVideoFolder, userFolderName);
                 if (!Directory.Exists(uploadsFolder))
                 {
                     Directory.CreateDirectory(uploadsFolder);
@@ -899,7 +1236,6 @@ namespace ChatBot.Controllers
 
                 var fileName = $"{userFolderName}_{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
                 var filePath = Path.Combine(uploadsFolder, fileName);
-
                 using (var stream = new FileStream(filePath, FileMode.Create))
                 {
                     await file.CopyToAsync(stream);
@@ -930,23 +1266,10 @@ namespace ChatBot.Controllers
             }
         }
 
-        [HttpPost]
-        public IActionResult UpdateTabSwitchCount([FromBody] TabSwitchModel data)
-        {
-            string userId = HttpContext.Session.Id;
-            _chatDbService.UpdateTabSwitchCount(userId, data.Count);
-            return Ok();
-        }
-
-        public class TabSwitchModel
-        {
-            public int Count { get; set; }
-        }
-
         [HttpGet]
         public IActionResult ViewInterviewVideo(string fileName)
         {
-            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "App_Data", "Uploads", "InterviewVideos", fileName);
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), _interviewVideoFolder, fileName);
             if (!System.IO.File.Exists(filePath))
             {
                 return NotFound("Video not found.");
@@ -959,7 +1282,7 @@ namespace ChatBot.Controllers
         [HttpGet]
         public IActionResult ViewIDProof(string fileName)
         {
-            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "App_Data", "Uploads", "IDProofs", fileName);
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), _idProofFolder, fileName);
             if (!System.IO.File.Exists(filePath))
             {
                 return NotFound("ID proof not found.");

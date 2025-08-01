@@ -13,10 +13,12 @@ namespace ChatBot.Services
         private readonly string _connectionString;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger<ChatDbService> _logger;
+        private readonly string _interviewVideoFolder;
 
         public ChatDbService(IConfiguration config, IHttpContextAccessor httpContextAccessor, ILogger<ChatDbService> logger)
         {
             _connectionString = config.GetConnectionString("DefaultConnection");
+            _interviewVideoFolder = config.GetSection("UploadPaths:InterviewVideoFolder").Value;
             _httpContextAccessor = httpContextAccessor;
             _logger = logger;
         }
@@ -192,39 +194,39 @@ namespace ChatBot.Services
             }
         }
 
-        public void UpdateInterviewSession(InterviewSession session)
-        {
-            try
-            {
-                using var conn = new SqlConnection(_connectionString);
-                conn.Open();
+        //public void UpdateInterviewSession(InterviewSession session)
+        //{
+        //    try
+        //    {
+        //        using var conn = new SqlConnection(_connectionString);
+        //        conn.Open();
 
-                var cmd = new SqlCommand(@"
-                    UPDATE Interactions 
-                    SET QuestionIndex = @QuestionIndex, 
-                        Questions = @Questions, 
-                        Answers = @Answers,
-                        IsComplete = @IsComplete,
-                        TabSwitchCount = @TabSwitchCount,
-                        VideoPath = @VideoPath
-                    WHERE InteractionId = @InteractionId AND InteractionType = 'Interview'", conn);
+        //        var cmd = new SqlCommand(@"
+        //            UPDATE Interactions 
+        //            SET QuestionIndex = @QuestionIndex, 
+        //                Questions = @Questions, 
+        //                Answers = @Answers,
+        //                IsComplete = @IsComplete,
+        //                TabSwitchCount = @TabSwitchCount,
+        //                VideoPath = @VideoPath
+        //            WHERE InteractionId = @InteractionId AND InteractionType = 'Interview'", conn);
 
-                cmd.Parameters.AddWithValue("@InteractionId", session.Id);
-                cmd.Parameters.AddWithValue("@QuestionIndex", session.QuestionIndex);
-                cmd.Parameters.AddWithValue("@Questions", JsonConvert.SerializeObject(session.Questions));
-                cmd.Parameters.AddWithValue("@Answers", JsonConvert.SerializeObject(session.Answers));
-                cmd.Parameters.AddWithValue("@IsComplete", session.IsComplete);
-                cmd.Parameters.AddWithValue("@TabSwitchCount", session.TabSwitchCount);
-                cmd.Parameters.AddWithValue("@VideoPath", session.VideoPath ?? (object)DBNull.Value);
+        //        cmd.Parameters.AddWithValue("@InteractionId", session.Id);
+        //        cmd.Parameters.AddWithValue("@QuestionIndex", session.QuestionIndex);
+        //        cmd.Parameters.AddWithValue("@Questions", JsonConvert.SerializeObject(session.Questions));
+        //        cmd.Parameters.AddWithValue("@Answers", JsonConvert.SerializeObject(session.Answers));
+        //        cmd.Parameters.AddWithValue("@IsComplete", session.IsComplete);
+        //        cmd.Parameters.AddWithValue("@TabSwitchCount", session.TabSwitchCount);
+        //        cmd.Parameters.AddWithValue("@VideoPath", session.VideoPath ?? (object)DBNull.Value);
 
-                cmd.ExecuteNonQuery();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error updating interview session for InteractionId: {InteractionId}", session.Id);
-                throw;
-            }
-        }
+        //        cmd.ExecuteNonQuery();
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "Error updating interview session for InteractionId: {InteractionId}", session.Id);
+        //        throw;
+        //    }
+        //}
 
         public void UpdateTabSwitchCount(string userId, int count)
         {
@@ -277,6 +279,44 @@ namespace ChatBot.Services
             }
         }
 
+        //public void SaveInterviewSession(InterviewSession session)
+        //{
+        //    try
+        //    {
+        //        using var conn = new SqlConnection(_connectionString);
+        //        conn.Open();
+
+        //        var cmd = new SqlCommand(
+        //            @"INSERT INTO Interactions (
+        //                UserId, InteractionType, JobTitle, QuestionIndex, 
+        //                Questions, Answers, IsComplete, IsSubmitted, 
+        //                TabSwitchCount, VideoPath, CreatedAt
+        //            ) VALUES (
+        //                @UserId, @InteractionType, @JobTitle, @QuestionIndex, 
+        //                @Questions, @Answers, @IsComplete, @IsSubmitted, 
+        //                @TabSwitchCount, @VideoPath, @CreatedAt
+        //            ); SELECT SCOPE_IDENTITY();", conn);
+
+        //        cmd.Parameters.AddWithValue("@UserId", session.UserId);
+        //        cmd.Parameters.AddWithValue("@InteractionType", "Interview");
+        //        cmd.Parameters.AddWithValue("@JobTitle", (object)session.JobTitle ?? DBNull.Value);
+        //        cmd.Parameters.AddWithValue("@QuestionIndex", session.QuestionIndex);
+        //        cmd.Parameters.AddWithValue("@Questions", JsonConvert.SerializeObject(session.Questions));
+        //        cmd.Parameters.AddWithValue("@Answers", JsonConvert.SerializeObject(session.Answers));
+        //        cmd.Parameters.AddWithValue("@IsComplete", session.IsComplete);
+        //        cmd.Parameters.AddWithValue("@IsSubmitted", session.IsSubmitted);
+        //        cmd.Parameters.AddWithValue("@TabSwitchCount", session.TabSwitchCount);
+        //        cmd.Parameters.AddWithValue("@VideoPath", session.VideoPath ?? (object)DBNull.Value);
+        //        cmd.Parameters.AddWithValue("@CreatedAt", DateTime.Now);
+
+        //        session.Id = Convert.ToInt32(cmd.ExecuteScalar());
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        throw new Exception($"Error saving interview session for UserId: {session.UserId}", ex);
+        //    }
+        //}
+
         public void SaveInterviewSession(InterviewSession session)
         {
             try
@@ -284,16 +324,23 @@ namespace ChatBot.Services
                 using var conn = new SqlConnection(_connectionString);
                 conn.Open();
 
+                // Validate VideoPath
+                if (!string.IsNullOrEmpty(session.VideoPath) && !session.VideoPath.Contains(_interviewVideoFolder))
+                {
+                    session.VideoPath = Path.Combine(Directory.GetCurrentDirectory(), _interviewVideoFolder, session.VideoPath);
+                    _logger.LogInformation("Normalized VideoPath to: {VideoPath}", session.VideoPath);
+                }
+
                 var cmd = new SqlCommand(
                     @"INSERT INTO Interactions (
-                        UserId, InteractionType, JobTitle, QuestionIndex, 
-                        Questions, Answers, IsComplete, IsSubmitted, 
-                        TabSwitchCount, VideoPath, CreatedAt
-                    ) VALUES (
-                        @UserId, @InteractionType, @JobTitle, @QuestionIndex, 
-                        @Questions, @Answers, @IsComplete, @IsSubmitted, 
-                        @TabSwitchCount, @VideoPath, @CreatedAt
-                    ); SELECT SCOPE_IDENTITY();", conn);
+                    UserId, InteractionType, JobTitle, QuestionIndex,
+                    Questions, Answers, IsComplete, IsSubmitted,
+                    TabSwitchCount, VideoPath, CreatedAt
+                ) VALUES (
+                    @UserId, @InteractionType, @JobTitle, @QuestionIndex,
+                    @Questions, @Answers, @IsComplete, @IsSubmitted,
+                    @TabSwitchCount, @VideoPath, @CreatedAt
+                ); SELECT SCOPE_IDENTITY();", conn);
 
                 cmd.Parameters.AddWithValue("@UserId", session.UserId);
                 cmd.Parameters.AddWithValue("@InteractionType", "Interview");
@@ -311,7 +358,51 @@ namespace ChatBot.Services
             }
             catch (Exception ex)
             {
-                throw new Exception($"Error saving interview session for UserId: {session.UserId}", ex);
+                _logger.LogError(ex, "Error saving interview session for UserId: {UserId}", session.UserId);
+                throw;
+            }
+        }
+
+        public void UpdateInterviewSession(InterviewSession session)
+        {
+            try
+            {
+                using var conn = new SqlConnection(_connectionString);
+                conn.Open();
+
+                // Validate VideoPath
+                if (!string.IsNullOrEmpty(session.VideoPath) && !session.VideoPath.Contains(_interviewVideoFolder))
+                {
+                    session.VideoPath = Path.Combine(Directory.GetCurrentDirectory(), _interviewVideoFolder, session.VideoPath);
+                    _logger.LogInformation("Normalized VideoPath to: {VideoPath}", session.VideoPath);
+                }
+
+                var cmd = new SqlCommand(@"
+                UPDATE Interactions
+                SET QuestionIndex = @QuestionIndex,
+                    Questions = @Questions,
+                    Answers = @Answers,
+                    IsComplete = @IsComplete,
+                    IsSubmitted = @IsSubmitted,
+                    TabSwitchCount = @TabSwitchCount,
+                    VideoPath = @VideoPath
+                WHERE InteractionId = @InteractionId AND InteractionType = 'Interview'", conn);
+
+                cmd.Parameters.AddWithValue("@InteractionId", session.Id);
+                cmd.Parameters.AddWithValue("@QuestionIndex", session.QuestionIndex);
+                cmd.Parameters.AddWithValue("@Questions", JsonConvert.SerializeObject(session.Questions));
+                cmd.Parameters.AddWithValue("@Answers", JsonConvert.SerializeObject(session.Answers));
+                cmd.Parameters.AddWithValue("@IsComplete", session.IsComplete);
+                cmd.Parameters.AddWithValue("@IsSubmitted", session.IsSubmitted);
+                cmd.Parameters.AddWithValue("@TabSwitchCount", session.TabSwitchCount);
+                cmd.Parameters.AddWithValue("@VideoPath", session.VideoPath ?? (object)DBNull.Value);
+
+                cmd.ExecuteNonQuery();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating interview session for InteractionId: {InteractionId}", session.Id);
+                throw;
             }
         }
     }
