@@ -1,0 +1,117 @@
+﻿@model List<ChatBot.Controllers.ConversationViewModel>
+@using ChatBot.Models
+@{
+    ViewData["Title"] = "Conversation History";
+}
+
+<h2>Conversation History for User</h2>
+
+@if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
+{
+    <div class="alert alert-danger">@ViewBag.ErrorMessage</div>
+}
+
+@if (Model.Any())
+{
+    <h4>User: @Model.First().Name (@Model.First().Email, @Model.First().Phone)</h4>
+    <div class="conversation-container">
+        @foreach (var conversation in Model)
+        {
+            <div class="conversation-block">
+                <h5>Session: @conversation.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss")</h5>
+                @{
+                    var messages = Newtonsoft.Json.JsonConvert.DeserializeObject<List<ChatMessage>>(conversation.ConversationText) ?? new List<ChatMessage>();
+                    // Sort messages by CreatedAt in ascending order
+                    messages = messages.OrderBy(m => m.CreatedAt).ToList();
+                }
+                @if (messages.Any())
+                {
+                    <div class="message-list">
+                        @foreach (var message in messages)
+                        {
+                            <div class="message-item">
+                                <div class="message-header">
+                                    <span class="message-time">@message.CreatedAt.ToString("HH:mm:ss")</span>
+                                </div>
+                                @if (!string.IsNullOrEmpty(message.UserMessage))
+                                {
+                                    <div class="message-content user-message">
+                                        <strong>User:</strong> @message.UserMessage
+                                    </div>
+                                }
+                                @if (!string.IsNullOrEmpty(message.BotResponse))
+                                {
+                                    <div class="message-content bot-message">
+                                        <strong>Bot:</strong> @message.BotResponse
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p>No messages in this session.</p>
+                }
+            </div>
+        }
+    </div>
+}
+else
+{
+    <p>No conversation history available.</p>
+}
+
+<style>
+    .conversation-container {
+        margin-top: 20px;
+    }
+
+    .conversation-block {
+        margin-bottom: 20px;
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        background-color: #f9f9f9;
+    }
+
+    .message-list {
+        margin-top: 10px;
+    }
+
+    .message-item {
+        margin-bottom: 10px;
+        padding: 10px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .message-header {
+        font-size: 0.9em;
+        color: #666;
+        margin-bottom: 5px;
+    }
+
+    .message-content {
+        padding: 5px 10px;
+        border-radius: 5px;
+    }
+
+    .user-message {
+        background-color: #e6f3ff;
+        margin-bottom: 5px;
+    }
+
+    .bot-message {
+        background-color: #f0f0f0;
+    }
+
+    .alert {
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+
+    h5 {
+        margin-bottom: 10px;
+        color: #333;
+    }
+</style>

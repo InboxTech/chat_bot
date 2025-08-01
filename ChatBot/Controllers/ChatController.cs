@@ -1,21 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using ChatBot.Models;
+﻿using ChatBot.Models;
 using ChatBot.Services;
+using iText.Kernel.Pdf;
+using iText.Kernel.Pdf.Canvas.Parser;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using iText.Kernel.Pdf;
-using iText.Kernel.Pdf.Canvas.Parser;
-using Xceed.Words.NET;
-using System.Text;
+using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using Xceed.Words.NET;
 
 namespace ChatBot.Controllers
 {
@@ -24,6 +25,7 @@ namespace ChatBot.Controllers
         private readonly ChatGPTService _chatGPTService;
         private readonly ChatDbService _chatDbService;
         private readonly ILogger<ChatController> _logger;
+        private readonly IConfiguration _configuration;
         private readonly List<PreInterviewQuestion> _preInterviewQuestions;
 
         public ChatController(
@@ -35,6 +37,7 @@ namespace ChatBot.Controllers
             _chatGPTService = chatGPTService;
             _chatDbService = chatDbService;
             _logger = logger;
+            _configuration = configuration;
             _preInterviewQuestions = configuration.GetSection("PreInterviewQuestions")
                                                   .Get<List<PreInterviewQuestion>>();
         }
@@ -56,7 +59,38 @@ namespace ChatBot.Controllers
         {
             HttpContext.Session.SetString("SessionMessages", JsonConvert.SerializeObject(new List<ChatMessage>()));
             HttpContext.Session.SetString("UserIdentity", "");
+            EnsureUserRecord(HttpContext.Session.Id);
             return View();
+        }
+
+        private void EnsureUserRecord(string userId)
+        {
+            try
+            {
+                var connectionString = _configuration.GetConnectionString("DefaultConnection");
+                using var conn = new SqlConnection(connectionString);
+                conn.Open();
+
+                var checkCmd = new SqlCommand("SELECT COUNT(*) FROM Users WHERE UserId = @UserId", conn);
+                checkCmd.Parameters.AddWithValue("@UserId", userId);
+                bool userExists = (int)checkCmd.ExecuteScalar() > 0;
+
+                if (!userExists)
+                {
+                    var user = new UserDetails
+                    {
+                        UserId = userId,
+                        CreatedAt = DateTime.Now
+                    };
+                    _chatDbService.SaveUserDetails(user);
+                    _logger.LogInformation("Created new Users record for UserId: {UserId}", userId);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error ensuring Users record for UserId: {UserId}", userId);
+                throw;
+            }
         }
 
         [HttpPost]
@@ -67,6 +101,8 @@ namespace ChatBot.Controllers
             string response = "";
             string modelUsed = "custom";
             bool startInterview = false;
+
+            EnsureUserRecord(userId);
 
             var message = new ChatMessage
             {
@@ -245,13 +281,13 @@ namespace ChatBot.Controllers
                     if (Regex.IsMatch(msg, @"\b(first)\b", RegexOptions.IgnoreCase))
                     {
                         response = $"✅ Your first interview for the position has been submitted. Our team will review your responses.";
-                        _chatDbService.MarkInterviewAsSubmitted(firstSessionId);
+                        _chatDbService.MarkInterviewAsSubmitted(int.Parse(firstSessionId));
                         ClearApplicationState();
                     }
                     else if (Regex.IsMatch(msg, @"\b(retake)\b", RegexOptions.IgnoreCase))
                     {
                         response = $"✅ Your retake interview for the position has been submitted. Our team will review your responses.";
-                        _chatDbService.MarkInterviewAsSubmitted(retakeSessionId);
+                        _chatDbService.MarkInterviewAsSubmitted(int.Parse(retakeSessionId));
                         ClearApplicationState();
                     }
                     else
@@ -262,7 +298,7 @@ namespace ChatBot.Controllers
                 else if (HttpContext.Session.GetString("FirstInterviewSessionId") is string && Regex.IsMatch(msg, @"\b(submit)\b", RegexOptions.IgnoreCase))
                 {
                     response = $"✅ Your interview for the position has been submitted. Our team will review your responses.";
-                    _chatDbService.MarkInterviewAsSubmitted(HttpContext.Session.GetString("FirstInterviewSessionId"));
+                    _chatDbService.MarkInterviewAsSubmitted(int.Parse(HttpContext.Session.GetString("FirstInterviewSessionId")));
                     ClearApplicationState();
                 }
                 else if (HttpContext.Session.GetString("FirstInterviewSessionId") is string _ && Regex.IsMatch(msg, @"\b(retake)\b", RegexOptions.IgnoreCase))
@@ -287,7 +323,6 @@ namespace ChatBot.Controllers
                         modelUsed = interviewModel;
                     }
                 }
-               
                 else if (HttpContext.Session.GetString("ApplicationState") is string appState)
                 {
                     userDetails = userDetailsStr is not null
@@ -609,6 +644,8 @@ namespace ChatBot.Controllers
             string response = "";
             string modelUsed = "custom";
 
+            EnsureUserRecord(userId);
+
             try
             {
                 if (resume == null || resume.Length == 0)
@@ -685,6 +722,7 @@ namespace ChatBot.Controllers
 
                 var message = new ChatMessage
                 {
+                    UserId = userId,
                     UserMessage = "Uploaded resume",
                     BotResponse = response,
                     Model = modelUsed,
@@ -721,6 +759,8 @@ namespace ChatBot.Controllers
                 CreatedAt = DateTime.Now
             };
             string response = "";
+
+            EnsureUserRecord(userId);
 
             try
             {
@@ -836,7 +876,7 @@ namespace ChatBot.Controllers
         }
 
         [HttpPost]
-        public IActionResult UploadInterviewVideo()
+        public async Task<IActionResult> UploadInterviewVideo()
         {
             try
             {
@@ -846,21 +886,32 @@ namespace ChatBot.Controllers
                     return BadRequest("No video file uploaded.");
                 }
 
-                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Uploads", "InterviewVideos");
+                var userId = HttpContext.Session.Id;
+                var userDetailsStr = HttpContext.Session.GetString("UserDetails");
+                var userDetails = userDetailsStr is not null ? JsonConvert.DeserializeObject<UserDetails>(userDetailsStr) : new UserDetails { UserId = userId };
+
+                var userFolderName = string.IsNullOrEmpty(userDetails.Name) ? userId : userDetails.Name.Replace(" ", "_");
+                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "App_Data", "Uploads", "InterviewVideos", userFolderName);
                 if (!Directory.Exists(uploadsFolder))
                 {
                     Directory.CreateDirectory(uploadsFolder);
                 }
 
-                var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
+                var fileName = $"{userFolderName}_{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
                 var filePath = Path.Combine(uploadsFolder, fileName);
 
                 using (var stream = new FileStream(filePath, FileMode.Create))
                 {
-                    file.CopyTo(stream);
+                    await file.CopyToAsync(stream);
                 }
 
-                var userId = HttpContext.Session.Id;
+                var session = _chatDbService.GetLatestSession(userId);
+                if (session != null)
+                {
+                    session.VideoPath = filePath;
+                    _chatDbService.UpdateInterviewSession(session);
+                }
+
                 var chatMessage = new ChatMessage
                 {
                     UserId = userId,
@@ -895,7 +946,7 @@ namespace ChatBot.Controllers
         [HttpGet]
         public IActionResult ViewInterviewVideo(string fileName)
         {
-            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Uploads", "InterviewVideos", fileName);
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "App_Data", "Uploads", "InterviewVideos", fileName);
             if (!System.IO.File.Exists(filePath))
             {
                 return NotFound("Video not found.");
@@ -908,7 +959,7 @@ namespace ChatBot.Controllers
         [HttpGet]
         public IActionResult ViewIDProof(string fileName)
         {
-            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Uploads", "IDProofs", fileName);
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "App_Data", "Uploads", "IDProofs", fileName);
             if (!System.IO.File.Exists(filePath))
             {
                 return NotFound("ID proof not found.");

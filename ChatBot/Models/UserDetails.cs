@@ -13,5 +13,6 @@
         public string IDProofPath { get; set; }
         public string IDProofType { get; set; } // New: e.g., Passport, Driver's License
         public DateTime CreatedAt { get; set; }
+        public string InterviewStatus { get; set; }
     }
 }

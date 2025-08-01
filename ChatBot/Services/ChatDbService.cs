@@ -3,10 +3,6 @@ using ChatBot.Models;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text.RegularExpressions;
-using System.IO;
-using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
@@ -32,17 +28,15 @@ namespace ChatBot.Services
                 using var conn = new SqlConnection(_connectionString);
                 conn.Open();
 
-                // Check if user already exists
-                var checkCmd = new SqlCommand("SELECT COUNT(*) FROM UserDetails WHERE UserId = @UserId", conn);
+                var checkCmd = new SqlCommand("SELECT COUNT(*) FROM Users WHERE UserId = @UserId", conn);
                 checkCmd.Parameters.AddWithValue("@UserId", user.UserId ?? (object)DBNull.Value);
                 bool userExists = (int)checkCmd.ExecuteScalar() > 0;
 
                 SqlCommand cmd;
                 if (userExists)
                 {
-                    // Update existing record
                     cmd = new SqlCommand(@"
-                        UPDATE UserDetails
+                        UPDATE Users
                         SET Name = @Name, Phone = @Phone, Email = @Email, Experience = @Experience, 
                             EmploymentStatus = @EmploymentStatus, Reason = @Reason, CreatedAt = @CreatedAt, 
                             IDProofPath = @IDProofPath, IDProofType = @IDProofType
@@ -50,9 +44,8 @@ namespace ChatBot.Services
                 }
                 else
                 {
-                    // Insert new record
                     cmd = new SqlCommand(@"
-                        INSERT INTO UserDetails (UserId, Name, Phone, Email, Experience, EmploymentStatus, Reason, 
+                        INSERT INTO Users (UserId, Name, Phone, Email, Experience, EmploymentStatus, Reason, 
                             CreatedAt, IDProofPath, IDProofType)
                         VALUES (@UserId, @Name, @Phone, @Email, @Experience, @EmploymentStatus, @Reason, 
                             @CreatedAt, @IDProofPath, @IDProofType)", conn);
@@ -87,14 +80,15 @@ namespace ChatBot.Services
 
                 var cmd = new SqlCommand(@"
                     SELECT COUNT(*) 
-                    FROM InterviewSessions 
-                    WHERE UserId IN (
+                    FROM Interactions 
+                    WHERE InteractionType = 'Interview' AND IsComplete = 1
+                    AND UserId IN (
                         SELECT UserId 
-                        FROM UserDetails 
+                        FROM Users 
                         WHERE (Name = @Name OR @Name IS NULL)
                         AND (Email = @Email OR @Email IS NULL)
                         AND (Phone = @Phone OR @Phone IS NULL)
-                    ) AND IsComplete = 1", conn);
+                    )", conn);
 
                 cmd.Parameters.AddWithValue("@Name", string.IsNullOrEmpty(name) ? (object)DBNull.Value : name);
                 cmd.Parameters.AddWithValue("@Email", string.IsNullOrEmpty(email) ? (object)DBNull.Value : email);
@@ -109,7 +103,7 @@ namespace ChatBot.Services
             }
         }
 
-        public void MarkInterviewAsSubmitted(string sessionId)
+        public void MarkInterviewAsSubmitted(int interactionId)
         {
             try
             {
@@ -117,233 +111,207 @@ namespace ChatBot.Services
                 conn.Open();
 
                 var cmd = new SqlCommand(@"
-                    UPDATE InterviewSessions 
+                    UPDATE Interactions 
                     SET IsSubmitted = 1
-                    WHERE Id = @SessionId", conn);
+                    WHERE InteractionId = @InteractionId AND InteractionType = 'Interview'", conn);
 
-                cmd.Parameters.AddWithValue("@SessionId", sessionId);
+                cmd.Parameters.AddWithValue("@InteractionId", interactionId);
                 cmd.ExecuteNonQuery();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error marking interview session as submitted for SessionId: {SessionId}", sessionId);
+                _logger.LogError(ex, "Error marking interview session as submitted for InteractionId: {InteractionId}", interactionId);
                 throw;
             }
         }
 
         public void SaveMessage(ChatMessage message)
         {
-            using var conn = new SqlConnection(_connectionString);
-            conn.Open();
+            try
+            {
+                using var conn = new SqlConnection(_connectionString);
+                conn.Open();
 
-            var cmd = new SqlCommand(@"
-                INSERT INTO ChatMessages (UserId, UserMessage, BotResponse, Model, CreatedAt)
-                VALUES (@userId, @user, @bot, @model, @time)", conn);
+                var cmd = new SqlCommand(@"
+                    INSERT INTO Interactions (UserId, InteractionType, UserMessage, BotResponse, Model, CreatedAt)
+                    VALUES (@UserId, 'Chat', @UserMessage, @BotResponse, @Model, @CreatedAt)", conn);
 
-            cmd.Parameters.AddWithValue("@userId", message.UserId ?? "");
-            cmd.Parameters.AddWithValue("@user", message.UserMessage ?? "");
-            cmd.Parameters.AddWithValue("@bot", message.BotResponse ?? "");
-            cmd.Parameters.AddWithValue("@model", message.Model ?? "custom");
-            cmd.Parameters.AddWithValue("@time", message.CreatedAt);
+                cmd.Parameters.AddWithValue("@UserId", message.UserId ?? "");
+                cmd.Parameters.AddWithValue("@UserMessage", message.UserMessage ?? "");
+                cmd.Parameters.AddWithValue("@BotResponse", message.BotResponse ?? "");
+                cmd.Parameters.AddWithValue("@Model", message.Model ?? "custom");
+                cmd.Parameters.AddWithValue("@CreatedAt", message.CreatedAt);
 
-            cmd.ExecuteNonQuery();
-        }
-
-        public void SaveInterviewSession(InterviewSession session)
-        {
-            using var conn = new SqlConnection(_connectionString);
-            conn.Open();
-
-            var cmd = new SqlCommand(@"
-                INSERT INTO InterviewSessions (UserId, JobTitle, QuestionIndex, Questions, Answers, IsComplete, IsSubmitted, TabSwitchCount, CreatedAt)
-                VALUES (@UserId, @JobTitle, @QuestionIndex, @Questions, @Answers, @IsComplete, @IsSubmitted, @TabSwitchCount, @CreatedAt);
-                SELECT SCOPE_IDENTITY();", conn);
-
-            cmd.Parameters.AddWithValue("@UserId", session.UserId);
-            cmd.Parameters.AddWithValue("@JobTitle", session.JobTitle);
-            cmd.Parameters.AddWithValue("@QuestionIndex", session.QuestionIndex);
-            cmd.Parameters.AddWithValue("@Questions", JsonConvert.SerializeObject(session.Questions));
-            cmd.Parameters.AddWithValue("@Answers", JsonConvert.SerializeObject(session.Answers));
-            cmd.Parameters.AddWithValue("@IsComplete", session.IsComplete);
-            cmd.Parameters.AddWithValue("@IsSubmitted", false);
-            cmd.Parameters.AddWithValue("@TabSwitchCount", session.TabSwitchCount);
-            cmd.Parameters.AddWithValue("@CreatedAt", DateTime.Now);
-
-            session.Id = Convert.ToInt32(cmd.ExecuteScalar());
+                cmd.ExecuteNonQuery();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error saving message for UserId: {UserId}", message.UserId);
+                throw;
+            }
         }
 
         public InterviewSession? GetLatestSession(string userId)
         {
-            using var conn = new SqlConnection(_connectionString);
-            conn.Open();
-
-            var cmd = new SqlCommand(@"
-                SELECT TOP 1 * FROM InterviewSessions 
-                WHERE UserId = @UserId
-                ORDER BY CreatedAt DESC", conn);
-            cmd.Parameters.AddWithValue("@UserId", userId);
-
-            using var reader = cmd.ExecuteReader();
-            if (reader.Read())
+            try
             {
-                return new InterviewSession
-                {
-                    Id = (int)reader["Id"],
-                    UserId = (string)reader["UserId"],
-                    JobTitle = (string)reader["JobTitle"],
-                    QuestionIndex = (int)reader["QuestionIndex"],
-                    Questions = JsonConvert.DeserializeObject<List<string>>((string)reader["Questions"]) ?? new(),
-                    Answers = JsonConvert.DeserializeObject<List<string>>((string)reader["Answers"]) ?? new(),
-                    IsComplete = (bool)reader["IsComplete"],
-                    IsSubmitted = (bool)reader["IsSubmitted"],
-                    TabSwitchCount = (int)reader["TabSwitchCount"],
-                    CreatedAt = (DateTime)reader["CreatedAt"]
-                };
-            }
+                using var conn = new SqlConnection(_connectionString);
+                conn.Open();
 
-            return null;
+                var cmd = new SqlCommand(@"
+                    SELECT TOP 1 * FROM Interactions 
+                    WHERE UserId = @UserId AND InteractionType = 'Interview'
+                    ORDER BY CreatedAt DESC", conn);
+                cmd.Parameters.AddWithValue("@UserId", userId);
+
+                using var reader = cmd.ExecuteReader();
+                if (reader.Read())
+                {
+                    return new InterviewSession
+                    {
+                        Id = (int)reader["InteractionId"],
+                        UserId = (string)reader["UserId"],
+                        JobTitle = reader["JobTitle"] != DBNull.Value ? (string)reader["JobTitle"] : "",
+                        QuestionIndex = reader["QuestionIndex"] != DBNull.Value ? (int)reader["QuestionIndex"] : 0,
+                        Questions = JsonConvert.DeserializeObject<List<string>>((string)reader["Questions"] ?? "[]") ?? new(),
+                        Answers = JsonConvert.DeserializeObject<List<string>>((string)reader["Answers"] ?? "[]") ?? new(),
+                        IsComplete = reader["IsComplete"] != DBNull.Value ? (bool)reader["IsComplete"] : false,
+                        IsSubmitted = reader["IsSubmitted"] != DBNull.Value ? (bool)reader["IsSubmitted"] : false,
+                        TabSwitchCount = reader["TabSwitchCount"] != DBNull.Value ? (int)reader["TabSwitchCount"] : 0,
+                        VideoPath = reader["VideoPath"] != DBNull.Value ? (string)reader["VideoPath"] : null,
+                        CreatedAt = (DateTime)reader["CreatedAt"]
+                    };
+                }
+
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving latest session for UserId: {UserId}", userId);
+                throw;
+            }
         }
 
         public void UpdateInterviewSession(InterviewSession session)
         {
-            using var conn = new SqlConnection(_connectionString);
-            conn.Open();
+            try
+            {
+                using var conn = new SqlConnection(_connectionString);
+                conn.Open();
 
-            var cmd = new SqlCommand(@"
-                UPDATE InterviewSessions 
-                SET QuestionIndex = @QuestionIndex, 
-                    Questions = @Questions, 
-                    Answers = @Answers,
-                    IsComplete = @IsComplete,
-                    TabSwitchCount = @TabSwitchCount
-                WHERE Id = @Id", conn);
+                var cmd = new SqlCommand(@"
+                    UPDATE Interactions 
+                    SET QuestionIndex = @QuestionIndex, 
+                        Questions = @Questions, 
+                        Answers = @Answers,
+                        IsComplete = @IsComplete,
+                        TabSwitchCount = @TabSwitchCount,
+                        VideoPath = @VideoPath
+                    WHERE InteractionId = @InteractionId AND InteractionType = 'Interview'", conn);
 
-            cmd.Parameters.AddWithValue("@Id", session.Id);
-            cmd.Parameters.AddWithValue("@QuestionIndex", session.QuestionIndex);
-            cmd.Parameters.AddWithValue("@Questions", JsonConvert.SerializeObject(session.Questions));
-            cmd.Parameters.AddWithValue("@Answers", JsonConvert.SerializeObject(session.Answers));
-            cmd.Parameters.AddWithValue("@IsComplete", session.IsComplete);
-            cmd.Parameters.AddWithValue("@TabSwitchCount", session.TabSwitchCount);
+                cmd.Parameters.AddWithValue("@InteractionId", session.Id);
+                cmd.Parameters.AddWithValue("@QuestionIndex", session.QuestionIndex);
+                cmd.Parameters.AddWithValue("@Questions", JsonConvert.SerializeObject(session.Questions));
+                cmd.Parameters.AddWithValue("@Answers", JsonConvert.SerializeObject(session.Answers));
+                cmd.Parameters.AddWithValue("@IsComplete", session.IsComplete);
+                cmd.Parameters.AddWithValue("@TabSwitchCount", session.TabSwitchCount);
+                cmd.Parameters.AddWithValue("@VideoPath", session.VideoPath ?? (object)DBNull.Value);
 
-            cmd.ExecuteNonQuery();
+                cmd.ExecuteNonQuery();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating interview session for InteractionId: {InteractionId}", session.Id);
+                throw;
+            }
         }
 
         public void UpdateTabSwitchCount(string userId, int count)
         {
-            using var conn = new SqlConnection(_connectionString);
-            conn.Open();
+            try
+            {
+                using var conn = new SqlConnection(_connectionString);
+                conn.Open();
 
-            var cmd = new SqlCommand(@"
-                UPDATE InterviewSessions 
-                SET TabSwitchCount = COALESCE(TabSwitchCount, 0) + @Count
-                WHERE UserId = @UserId AND IsComplete = 0", conn);
+                var cmd = new SqlCommand(@"
+                    UPDATE Interactions 
+                    SET TabSwitchCount = COALESCE(TabSwitchCount, 0) + @Count
+                    WHERE UserId = @UserId AND InteractionType = 'Interview' AND IsComplete = 0", conn);
 
-            cmd.Parameters.AddWithValue("@UserId", userId);
-            cmd.Parameters.AddWithValue("@Count", count);
-            cmd.ExecuteNonQuery();
+                cmd.Parameters.AddWithValue("@UserId", userId);
+                cmd.Parameters.AddWithValue("@Count", count);
+                cmd.ExecuteNonQuery();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating tab switch count for UserId: {UserId}", userId);
+                throw;
+            }
         }
 
         public void SaveFullConversation(string userId, string name, string phone, string email, List<ChatMessage> messages)
         {
             try
             {
-                if (messages == null || messages.Count == 0)
-                    return;
-
-                var sb = new StringBuilder();
-                var now = DateTime.Now;
-                var sessionStartTimeKey = $"SessionStartTime_{userId}";
-                var sessionFileNameKey = $"SessionFileName_{userId}";
-                var folderPath = @"C:\Conversation";
-
-                if (!Directory.Exists(folderPath))
-                    Directory.CreateDirectory(folderPath);
-
-                var sessionStartTimeStr = _httpContextAccessor.HttpContext?.Session.GetString(sessionStartTimeKey);
-                DateTime sessionStartTime;
-                bool isNewSession = string.IsNullOrEmpty(sessionStartTimeStr) ||
-                                    !DateTime.TryParse(sessionStartTimeStr, out sessionStartTime) ||
-                                    (now - sessionStartTime).TotalMinutes >= 30;
-
-                string sessionFileName = null;
-                if (!string.IsNullOrEmpty(name) && (!string.IsNullOrEmpty(phone) || !string.IsNullOrEmpty(email)))
-                {
-                    var identifier = !string.IsNullOrEmpty(phone) ? phone.Replace("+", "").Replace(" ", "") : email.Replace("@", "_").Replace(".", "_");
-                    sessionFileName = $"{name.Replace(" ", "_")}_{identifier}.txt";
-                }
-                else
-                {
-                    sessionFileName = $"session_{userId}.txt";
-                }
-
-                var finalFilePath = Path.Combine(folderPath, sessionFileName);
-                _httpContextAccessor.HttpContext?.Session.SetString(sessionFileNameKey, sessionFileName);
-
-                if (isNewSession)
-                {
-                    sb.AppendLine($"=============================");
-                    sb.AppendLine($"🕒 New Session on {now:yyyy-MM-dd HH:mm:ss}");
-                    sb.AppendLine($"=============================");
-                    sb.AppendLine();
-                    _httpContextAccessor.HttpContext?.Session.SetString(sessionStartTimeKey, now.ToString("o"));
-                }
-
-                bool isInterviewComplete = messages.Any(m => m.BotResponse.Contains("Thank you for completing the interview"));
-
-                foreach (var msg in messages)
-                {
-                    sb.AppendLine($"🕒 {msg.CreatedAt:yyyy-MM-dd HH:mm:ss}");
-                    sb.AppendLine($"👤 User: {msg.UserMessage}");
-                    sb.AppendLine($"🤖 Bot : {msg.BotResponse}");
-                    sb.AppendLine();
-                }
-
-                var session = GetLatestSession(userId);
-                if (isInterviewComplete && session != null)
-                {
-                    sb.AppendLine($"🔄 Tab Switch Count: {session.TabSwitchCount}");
-                }
-                else if (isInterviewComplete && session == null)
-                {
-                    sb.AppendLine("🔄 No interview session found.");
-                }
-
-                string conversationText = sb.ToString();
-
                 using var conn = new SqlConnection(_connectionString);
                 conn.Open();
-                using var transaction = conn.BeginTransaction();
-                try
-                {
-                    var cmd = new SqlCommand(@"
-                        INSERT INTO ChatMessages (UserId, Name, Phone, Email, ConversationText, CreatedAt)
-                        VALUES (@UserId, @Name, @Phone, @Email, @Text, @CreatedAt)", conn, transaction);
 
-                    cmd.Parameters.AddWithValue("@UserId", userId ?? "");
-                    cmd.Parameters.AddWithValue("@Name", name ?? "");
-                    cmd.Parameters.AddWithValue("@Phone", phone ?? "");
-                    cmd.Parameters.AddWithValue("@Email", email ?? "");
-                    cmd.Parameters.AddWithValue("@Text", conversationText);
-                    cmd.Parameters.AddWithValue("@CreatedAt", now);
-                    cmd.ExecuteNonQuery();
+                var conversationText = JsonConvert.SerializeObject(messages);
+                var cmd = new SqlCommand(
+                    @"INSERT INTO Interactions (
+                        UserId, InteractionType, ConversationText, CreatedAt
+                    ) VALUES (
+                        @UserId, @InteractionType, @ConversationText, @CreatedAt
+                    )", conn);
 
-                    transaction.Commit();
-                }
-                catch
-                {
-                    transaction.Rollback();
-                    throw;
-                }
+                cmd.Parameters.AddWithValue("@UserId", userId);
+                cmd.Parameters.AddWithValue("@InteractionType", "Chat");
+                cmd.Parameters.AddWithValue("@ConversationText", conversationText);
+                cmd.Parameters.AddWithValue("@CreatedAt", DateTime.Now);
 
-                lock (new object())
-                {
-                    File.AppendAllText(finalFilePath, conversationText);
-                }
+                cmd.ExecuteNonQuery();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error saving conversation for UserId: {UserId}", userId);
-                File.WriteAllText(Path.Combine(@"C:\Conversation", "error.txt"), ex.ToString());
+                throw new Exception($"Error saving full conversation for UserId: {userId}", ex);
+            }
+        }
+
+        public void SaveInterviewSession(InterviewSession session)
+        {
+            try
+            {
+                using var conn = new SqlConnection(_connectionString);
+                conn.Open();
+
+                var cmd = new SqlCommand(
+                    @"INSERT INTO Interactions (
+                        UserId, InteractionType, JobTitle, QuestionIndex, 
+                        Questions, Answers, IsComplete, IsSubmitted, 
+                        TabSwitchCount, VideoPath, CreatedAt
+                    ) VALUES (
+                        @UserId, @InteractionType, @JobTitle, @QuestionIndex, 
+                        @Questions, @Answers, @IsComplete, @IsSubmitted, 
+                        @TabSwitchCount, @VideoPath, @CreatedAt
+                    ); SELECT SCOPE_IDENTITY();", conn);
+
+                cmd.Parameters.AddWithValue("@UserId", session.UserId);
+                cmd.Parameters.AddWithValue("@InteractionType", "Interview");
+                cmd.Parameters.AddWithValue("@JobTitle", (object)session.JobTitle ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@QuestionIndex", session.QuestionIndex);
+                cmd.Parameters.AddWithValue("@Questions", JsonConvert.SerializeObject(session.Questions));
+                cmd.Parameters.AddWithValue("@Answers", JsonConvert.SerializeObject(session.Answers));
+                cmd.Parameters.AddWithValue("@IsComplete", session.IsComplete);
+                cmd.Parameters.AddWithValue("@IsSubmitted", session.IsSubmitted);
+                cmd.Parameters.AddWithValue("@TabSwitchCount", session.TabSwitchCount);
+                cmd.Parameters.AddWithValue("@VideoPath", session.VideoPath ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@CreatedAt", DateTime.Now);
+
+                session.Id = Convert.ToInt32(cmd.ExecuteScalar());
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error saving interview session for UserId: {session.UserId}", ex);
             }
         }
     }
