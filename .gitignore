@@ -8,3 +8,5 @@ obj/
 *.dll
 *.exe
 *.log
+/ChatBot/App_Data/Uploads/Resumes
+/ChatBot/App_Data/Uploads/IDProofs/Shahid_Siayed
