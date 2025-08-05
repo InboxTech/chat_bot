@@ -405,5 +405,124 @@ namespace ChatBot.Services
                 throw;
             }
         }
+
+        public void SaveMessageTemplate(string templateName, string messageType, string templateContent, bool isDefault)
+        {
+            try
+            {
+                using var conn = new SqlConnection(_connectionString);
+                conn.Open();
+                var cmd = new SqlCommand(@"
+                    INSERT INTO MessageTemplates (TemplateName, MessageType, TemplateContent, IsDefault, CreatedAt, UpdatedAt)
+                    VALUES (@TemplateName, @MessageType, @TemplateContent, @IsDefault, GETDATE(), GETDATE())", conn);
+                cmd.Parameters.AddWithValue("@TemplateName", templateName);
+                cmd.Parameters.AddWithValue("@MessageType", messageType);
+                cmd.Parameters.AddWithValue("@TemplateContent", templateContent);
+                cmd.Parameters.AddWithValue("@IsDefault", isDefault);
+                cmd.ExecuteNonQuery();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error saving message template: {TemplateName}", templateName);
+                throw;
+            }
+        }
+
+        public void UpdateMessageTemplate(int templateId, string templateName, string messageType, string templateContent, bool isDefault)
+        {
+            try
+            {
+                using var conn = new SqlConnection(_connectionString);
+                conn.Open();
+                var cmd = new SqlCommand(@"
+                    UPDATE MessageTemplates
+                    SET TemplateName = @TemplateName, MessageType = @MessageType, TemplateContent = @TemplateContent, 
+                        IsDefault = @IsDefault, UpdatedAt = GETDATE()
+                    WHERE TemplateId = @TemplateId", conn);
+                cmd.Parameters.AddWithValue("@TemplateId", templateId);
+                cmd.Parameters.AddWithValue("@TemplateName", templateName);
+                cmd.Parameters.AddWithValue("@MessageType", messageType);
+                cmd.Parameters.AddWithValue("@TemplateContent", templateContent);
+                cmd.Parameters.AddWithValue("@IsDefault", isDefault);
+                cmd.ExecuteNonQuery();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating message template: {TemplateId}", templateId);
+                throw;
+            }
+        }
+
+        public List<MessageTemplate> GetMessageTemplates()
+        {
+            try
+            {
+                var templates = new List<MessageTemplate>();
+                using var conn = new SqlConnection(_connectionString);
+                conn.Open();
+                var cmd = new SqlCommand("SELECT TemplateName, MessageType, TemplateContent, IsDefault FROM MessageTemplates", conn);
+                using var reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    templates.Add(new MessageTemplate
+                    {
+                        TemplateName = reader["TemplateName"] != DBNull.Value ? reader["TemplateName"].ToString() : string.Empty,
+                        MessageType = reader["MessageType"] != DBNull.Value ? reader["MessageType"].ToString() : string.Empty,
+                        TemplateContent = reader["TemplateContent"] != DBNull.Value ? reader["TemplateContent"].ToString() : string.Empty,
+                        IsDefault = reader["IsDefault"] != DBNull.Value ? (bool)reader["IsDefault"] : false
+                    });
+                }
+                _logger.LogInformation("Retrieved {Count} message templates", templates.Count);
+                return templates;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving message templates");
+                return new List<MessageTemplate>();
+            }
+        }
+
+        public void UpdateUserMessageStatus(string userId, bool emailSent, bool whatsappSent)
+        {
+            try
+            {
+                using var conn = new SqlConnection(_connectionString);
+                conn.Open();
+                var cmd = new SqlCommand("UPDATE Users SET EmailSent = @EmailSent, WhatsAppSent = @WhatsAppSent WHERE UserId = @UserId", conn);
+                cmd.Parameters.AddWithValue("@UserId", userId);
+                cmd.Parameters.AddWithValue("@EmailSent", emailSent);
+                cmd.Parameters.AddWithValue("@WhatsAppSent", whatsappSent);
+                cmd.ExecuteNonQuery();
+                _logger.LogInformation("Updated message status for UserId: {UserId}, EmailSent: {EmailSent}, WhatsAppSent: {WhatsAppSent}", userId, emailSent, whatsappSent);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating message status for UserId: {UserId}", userId);
+                throw;
+            }
+        }
+
+        // Add method to fetch user message status
+        public (bool EmailSent, bool SMSSent) GetUserMessageStatus(string userId)
+        {
+            try
+            {
+                using var conn = new SqlConnection(_connectionString);
+                conn.Open();
+                var cmd = new SqlCommand("SELECT EmailSent, SMSSent FROM Users WHERE UserId = @UserId", conn);
+                cmd.Parameters.AddWithValue("@UserId", userId);
+                using var reader = cmd.ExecuteReader();
+                if (reader.Read())
+                {
+                    return ((bool)reader["EmailSent"], (bool)reader["SMSSent"]);
+                }
+                return (false, false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving message status for UserId: {UserId}", userId);
+                throw;
+            }
+        }
     }
 }

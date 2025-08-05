@@ -30,6 +30,7 @@ namespace ChatBot.Controllers
         private readonly string _resumeFolder;
         private readonly string _idProofFolder;
         private readonly string _interviewVideoFolder;
+        private readonly NotificationService _notificationService;
 
         public ChatController(
             ChatGPTService chatGPTService,
@@ -288,12 +289,14 @@ namespace ChatBot.Controllers
                     {
                         response = $"✅ Your first interview for the position has been submitted. Our team will review your responses.";
                         _chatDbService.MarkInterviewAsSubmitted(int.Parse(firstSessionId));
+                        await SendPostSubmissionMessages(userId, userDetails, HttpContext.Session.GetString("SelectedJob"));
                         ClearApplicationState();
                     }
                     else if (Regex.IsMatch(msg, @"\b(retake)\b", RegexOptions.IgnoreCase))
                     {
                         response = $"✅ Your retake interview for the position has been submitted. Our team will review your responses.";
                         _chatDbService.MarkInterviewAsSubmitted(int.Parse(retakeSessionId));
+                        await SendPostSubmissionMessages(userId, userDetails, HttpContext.Session.GetString("SelectedJob"));
                         ClearApplicationState();
                     }
                     else
@@ -305,6 +308,7 @@ namespace ChatBot.Controllers
                 {
                     response = $"✅ Your interview for the position has been submitted. Our team will review your responses.";
                     _chatDbService.MarkInterviewAsSubmitted(int.Parse(HttpContext.Session.GetString("FirstInterviewSessionId")));
+                    await SendPostSubmissionMessages(userId, userDetails, HttpContext.Session.GetString("SelectedJob"));
                     ClearApplicationState();
                 }
                 else if (HttpContext.Session.GetString("FirstInterviewSessionId") is string _ && Regex.IsMatch(msg, @"\b(retake)\b", RegexOptions.IgnoreCase))
@@ -1290,6 +1294,85 @@ namespace ChatBot.Controllers
 
             var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
             return File(stream, "image/jpeg");
+        }
+
+        [HttpGet]
+        public IActionResult GetInterviewStatus()
+        {
+            try
+            {
+                string userId = HttpContext.Session.Id;
+                EnsureUserRecord(userId);
+
+                var session = _chatDbService.GetLatestSession(userId);
+                if (session != null && !session.IsComplete && session.QuestionIndex < session.Questions.Count)
+                {
+                    // Interview is active and has pending questions
+                    string currentQuestion = $"🧪 Continuing interview for {session.JobTitle}.\n❓ Question {session.QuestionIndex + 1}: {session.Questions[session.QuestionIndex]}";
+                    return Json(new { isInterviewActive = true, currentQuestion });
+                }
+                else if (HttpContext.Session.GetString("FirstInterviewSessionId") is string firstSessionId)
+                {
+                    // Interview is complete, but user needs to choose between first and retake
+                    string currentQuestion = "✅ Thank you for completing the interview. Please choose which interview to submit: reply 'first' to submit your first attempt or 'retake' to submit your retake.";
+                    return Json(new { isInterviewActive = true, currentQuestion });
+                }
+                else
+                {
+                    // No active interview
+                    return Json(new { isInterviewActive = false });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving interview status for UserId: {UserId}", HttpContext.Session.Id);
+                return Json(new { isInterviewActive = false, message = "Error retrieving interview status." });
+            }
+        }
+
+        private async Task SendPostSubmissionMessages(string userId, UserDetails userDetails, string jobTitle)
+        {
+            try
+            {
+                var templates = _chatDbService.GetMessageTemplates();
+                var emailTemplate = templates.FirstOrDefault(t => t.MessageType == "Email" && t.IsDefault);
+                var whatsappTemplate = templates.FirstOrDefault(t => t.MessageType == "WhatsApp" && t.IsDefault);
+
+                using var conn = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+                conn.Open();
+                var cmd = new SqlCommand("SELECT EmailSent, SMSSent FROM Users WHERE UserId = @UserId", conn);
+                cmd.Parameters.AddWithValue("@UserId", userId);
+                using var reader = cmd.ExecuteReader();
+                bool emailSent = false, whatsappSent = false;
+                if (reader.Read())
+                {
+                    emailSent = (bool)reader["EmailSent"];
+                    whatsappSent = (bool)reader["SMSSent"];
+                }
+                reader.Close();
+
+                if (emailTemplate != null && !string.IsNullOrEmpty(userDetails?.Email) && !emailSent)
+                {
+                    var body = emailTemplate.TemplateContent
+                        .Replace("{Name}", userDetails.Name ?? "Candidate")
+                        .Replace("{JobTitle}", jobTitle ?? "the position");
+                    await _notificationService.SendEmailAsync(userDetails.Email, "Interview Submission Confirmation", body);
+                    _chatDbService.UpdateUserMessageStatus(userId, true, whatsappSent);
+                }
+
+                if (whatsappTemplate != null && !string.IsNullOrEmpty(userDetails?.Phone) && !whatsappSent)
+                {
+                    var body = whatsappTemplate.TemplateContent
+                        .Replace("{Name}", userDetails.Name ?? "Candidate")
+                        .Replace("{JobTitle}", jobTitle ?? "the position");
+                    await _notificationService.SendWhatsAppAsync(userDetails.Phone, body);
+                    _chatDbService.UpdateUserMessageStatus(userId, emailSent, true);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error sending post-submission messages for UserId: {UserId}", userId);
+            }
         }
     }
 }

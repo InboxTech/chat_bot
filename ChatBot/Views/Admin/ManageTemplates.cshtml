@@ -1,0 +1,107 @@
+﻿@model List<ChatBot.Models.MessageTemplate>
+@{
+    ViewData["Title"] = "Manage Message Templates";
+}
+
+<h2>Manage Message Templates</h2>
+
+@if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
+{
+    <div class="alert alert-danger">@ViewBag.ErrorMessage</div>
+}
+
+<form asp-action="SaveTemplate" method="post" class="mb-4">
+    <input type="hidden" name="templateId" value="0" />
+    <div class="form-group">
+        <label>Template Name</label>
+        <input type="text" name="templateName" class="form-control" required />
+    </div>
+    <div class="form-group">
+        <label>Message Type</label>
+        <select name="messageType" class="form-control" required>
+            <option value="Email">Email</option>
+            <option value="SMS">SMS</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label>Template Content (Use {Name} and {JobTitle} for placeholders)</label>
+        <textarea name="templateContent" class="form-control" rows="5" required></textarea>
+    </div>
+    <div class="form-group">
+        <label><input type="checkbox" name="isDefault" value="true" /> Set as Default</label>
+    </div>
+    <button type="submit" class="btn btn-primary">Add Template</button>
+</form>
+
+@if (Model.Any())
+{
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Template Name</th>
+                <th>Message Type</th>
+                <th>Content</th>
+                <th>Default</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var template in Model)
+            {
+                <tr>
+                    <td>@template.TemplateName</td>
+                    <td>@template.MessageType</td>
+                    <td>@template.TemplateContent</td>
+                    <td>@(template.IsDefault ? "Yes" : "No")</td>
+                    <td>
+                        <form asp-action="SaveTemplate" method="post" class="d-inline">
+                            <input type="hidden" name="templateId" value="@template.TemplateId" />
+                            <input type="text" name="templateName" value="@template.TemplateName" class="form-control d-inline-block" style="width: auto;" required />
+                            <select name="messageType" class="form-control d-inline-block" style="width: auto;" required>
+                                <option value="Email" selected="@(template.MessageType == "Email")">Email</option>
+                                <option value="SMS" selected="@(template.MessageType == "SMS")">SMS</option>
+                            </select>
+                            <textarea name="templateContent" class="form-control d-inline-block" style="width: auto;" required>@template.TemplateContent</textarea>
+                            <label><input type="checkbox" name="isDefault" value="true" checked="@template.IsDefault" /> Default</label>
+                            <button type="submit" class="btn btn-sm btn-warning">Update</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No templates available.</p>
+}
+
+<style>
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .table {
+        width: 100%;
+        margin-top: 20px;
+    }
+
+        .table th, .table td {
+            padding: 10px;
+            text-align: left;
+            vertical-align: middle;
+        }
+
+        .table th {
+            background-color: #f4f4f4;
+        }
+
+    .alert {
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+
+    .btn {
+        margin-right: 5px;
+    }
+</style>

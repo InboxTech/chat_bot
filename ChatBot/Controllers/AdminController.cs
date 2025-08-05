@@ -1,178 +1,47 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using ChatBot.Models;
+using ChatBot.Services;
+using jsreport.Types;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using ChatBot.Models;
-using Newtonsoft.Json;
+using static ChatBot.Controllers.ChatController;
 
 namespace ChatBot.Controllers
 {
-    //public class AdminController : Controller
-    //{
-    //    private readonly string _connectionString;
-    //    private readonly IConfiguration _configuration;
-    //    private readonly ILogger<AdminController> _logger;
-
-    //    public AdminController(IConfiguration configuration, ILogger<AdminController> logger)
-    //    {
-    //        _configuration = configuration;
-    //        _connectionString = configuration.GetConnectionString("DefaultConnection");
-    //        _logger = logger;
-    //    }
-
-    //    [HttpGet]
-    //    public IActionResult Index()
-    //    {
-    //        var userDetailsList = new List<UserAdminViewModel>();
-    //        try
-    //        {
-    //            if (string.IsNullOrEmpty(_connectionString))
-    //            {
-    //                var errorMsg = "Connection string 'DefaultConnection' is missing or empty.";
-    //                _logger.LogError(errorMsg);
-    //                ViewBag.ErrorMessage = errorMsg;
-    //                return View(userDetailsList);
-    //            }
-
-    //            using var conn = new SqlConnection(_connectionString);
-    //            conn.Open();
-    //            _logger.LogInformation("Successfully connected to the database.");
-
-    //            var tableCheckCmd = new SqlCommand(@"
-    //                SELECT COUNT(*) 
-    //                FROM INFORMATION_SCHEMA.TABLES 
-    //                WHERE TABLE_NAME IN ('Users', 'Interactions')", conn);
-    //            int tableCount = (int)tableCheckCmd.ExecuteScalar();
-    //            if (tableCount < 2)
-    //            {
-    //                var errorMsg = "Required tables 'Users' or 'Interactions' are missing in the database.";
-    //                _logger.LogError(errorMsg);
-    //                ViewBag.ErrorMessage = errorMsg;
-    //                return View(userDetailsList);
-    //            }
-
-    //            var userColumnCheckCmd = new SqlCommand(@"
-    //                SELECT COUNT(*) 
-    //                FROM INFORMATION_SCHEMA.COLUMNS 
-    //                WHERE TABLE_NAME = 'Users' 
-    //                AND COLUMN_NAME IN ('UserId', 'Name', 'Phone', 'Email', 'Experience', 
-    //                                    'EmploymentStatus', 'Reason', 'CreatedAt', 
-    //                                    'IDProofPath', 'IDProofType')", conn);
-    //            int userColumnCount = (int)userColumnCheckCmd.ExecuteScalar();
-    //            if (userColumnCount < 10)
-    //            {
-    //                var errorMsg = "One or more required columns are missing in the Users table.";
-    //                _logger.LogError(errorMsg);
-    //                ViewBag.ErrorMessage = errorMsg;
-    //                return View(userDetailsList);
-    //            }
-
-    //            var interactionColumnCheckCmd = new SqlCommand(@"
-    //                SELECT COUNT(*) 
-    //                FROM INFORMATION_SCHEMA.COLUMNS 
-    //                WHERE TABLE_NAME = 'Interactions' 
-    //                AND COLUMN_NAME IN ('InteractionId', 'UserId', 'InteractionType', 'JobTitle', 
-    //                                    'QuestionIndex', 'Questions', 'Answers', 'IsComplete', 
-    //                                    'IsSubmitted', 'TabSwitchCount', 'ConversationText', 
-    //                                    'UserMessage', 'BotResponse', 'Model', 'CreatedAt')", conn);
-    //            int interactionColumnCount = (int)interactionColumnCheckCmd.ExecuteScalar();
-    //            if (interactionColumnCount < 15)
-    //            {
-    //                var errorMsg = "One or more required columns are missing in the Interactions table.";
-    //                _logger.LogError(errorMsg);
-    //                ViewBag.ErrorMessage = errorMsg;
-    //                return View(userDetailsList);
-    //            }
-
-    //            var cmd = new SqlCommand(@"
-    //                SELECT u.UserId, u.Name, u.Phone, u.Email, u.Experience, u.EmploymentStatus, 
-    //                       u.Reason, u.CreatedAt, u.IDProofPath, u.IDProofType,
-    //                       ISNULL((SELECT COUNT(*) FROM Interactions WHERE UserId = u.UserId AND InteractionType = 'Interview' AND IsComplete = 1), 0) AS InterviewCount,
-    //                       ISNULL((SELECT TOP 1 IsSubmitted FROM Interactions WHERE UserId = u.UserId AND InteractionType = 'Interview' AND IsComplete = 1 ORDER BY CreatedAt DESC), 0) AS IsSubmitted
-    //                FROM Users u", conn);
-
-    //            using var reader = cmd.ExecuteReader();
-    //            var userDict = new Dictionary<string, UserAdminViewModel>();
-    //            while (reader.Read())
-    //            {
-    //                var user = new UserAdminViewModel
-    //                {
-    //                    UserId = reader["UserId"].ToString(),
-    //                    Name = reader["Name"] != DBNull.Value ? reader["Name"].ToString() : string.Empty,
-    //                    Phone = reader["Phone"] != DBNull.Value ? reader["Phone"].ToString() : string.Empty,
-    //                    Email = reader["Email"] != DBNull.Value ? reader["Email"].ToString() : string.Empty,
-    //                    Experience = reader["Experience"] != DBNull.Value ? reader["Experience"].ToString() : string.Empty,
-    //                    EmploymentStatus = reader["EmploymentStatus"] != DBNull.Value ? reader["EmploymentStatus"].ToString() : string.Empty,
-    //                    Reason = reader["Reason"] != DBNull.Value ? reader["Reason"].ToString() : string.Empty,
-    //                    CreatedAt = reader["CreatedAt"] != DBNull.Value ? (DateTime?)reader["CreatedAt"] : null,
-    //                    IDProofPath = reader["IDProofPath"] != DBNull.Value ? reader["IDProofPath"].ToString() : string.Empty,
-    //                    IDProofType = reader["IDProofType"] != DBNull.Value ? reader["IDProofType"].ToString() : string.Empty,
-    //                    InterviewCount = (int)reader["InterviewCount"],
-    //                    IsInterviewSubmitted = (bool)reader["IsSubmitted"],
-    //                    InterviewVideoPath = string.Empty,
-    //                    CompanyQueries = new List<string>()
-    //                };
-    //                userDict[user.UserId] = user;
-    //                userDetailsList.Add(user);
-    //            }
-    //            reader.Close();
-
-    //            var queryCmd = new SqlCommand(@"
-    //                SELECT UserId, UserMessage
-    //                FROM Interactions
-    //                WHERE InteractionType = 'Chat' AND UserMessage IS NOT NULL 
-    //                AND BotResponse NOT LIKE '%Question%'
-    //                AND BotResponse NOT LIKE '%interview for%'
-    //                AND BotResponse NOT LIKE '%upload your resume%'
-    //                AND BotResponse NOT LIKE '%Please provide%'", conn);
-
-    //            using var queryReader = queryCmd.ExecuteReader();
-    //            while (queryReader.Read())
-    //            {
-    //                var userId = queryReader["UserId"].ToString();
-    //                var userMessage = queryReader["UserMessage"] != DBNull.Value ? queryReader["UserMessage"].ToString() : string.Empty;
-    //                if (userDict.ContainsKey(userId))
-    //                {
-    //                    userDict[userId].CompanyQueries.Add(userMessage);
-    //                }
-    //            }
-    //        }
-    //        catch (SqlException sqlEx)
-    //        {
-    //            var errorMsg = $"SQL Error retrieving user data: {sqlEx.Message}, Error Code: {sqlEx.Number}, Line: {sqlEx.LineNumber}";
-    //            _logger.LogError(sqlEx, errorMsg);
-    //            ViewBag.ErrorMessage = "Database error occurred. Please check the server logs or try again later.";
-    //            return View(userDetailsList);
-    //        }
-    //        catch (Exception ex)
-    //        {
-    //            var errorMsg = $"Error retrieving user data: {ex.Message}";
-    //            _logger.LogError(ex, errorMsg);
-    //            ViewBag.ErrorMessage = "An unexpected error occurred. Please check the server logs or try again later.";
-    //            return View(userDetailsList);
-    //        }
-
-    //        return View(userDetailsList);
-    //    }
+   
     public class AdminController : Controller
     {
         private readonly string _connectionString;
-        private readonly IConfiguration _configuration;
         private readonly ILogger<AdminController> _logger;
+        private readonly NotificationService _notificationService;
+        private readonly ChatDbService _chatDbService;
+  
+       
+        private readonly IConfiguration _configuration;
+        private readonly List<PreInterviewQuestion> _preInterviewQuestions;
+        private readonly string _resumeFolder;
         private readonly string _idProofFolder;
         private readonly string _interviewVideoFolder;
 
-        public AdminController(IConfiguration configuration, ILogger<AdminController> logger)
+        public AdminController(IConfiguration configuration, ILogger<AdminController> logger, NotificationService notificationService, ChatDbService chatDbService)
         {
-            _configuration = configuration;
             _connectionString = configuration.GetConnectionString("DefaultConnection");
+            _logger = logger;
+            _notificationService = notificationService;
+            _chatDbService = chatDbService;
+            _notificationService = notificationService;
+            _logger = logger;
+            _configuration = configuration;
+            _preInterviewQuestions = configuration.GetSection("PreInterviewQuestions").Get<List<PreInterviewQuestion>>();
+            _resumeFolder = configuration.GetSection("UploadPaths:ResumeFolder").Value;
             _idProofFolder = configuration.GetSection("UploadPaths:IDProofFolder").Value;
             _interviewVideoFolder = configuration.GetSection("UploadPaths:InterviewVideoFolder").Value;
-            _logger = logger;
         }
 
         [HttpGet]
@@ -193,61 +62,28 @@ namespace ChatBot.Controllers
                 conn.Open();
                 _logger.LogInformation("Successfully connected to the database.");
 
-                var tableCheckCmd = new SqlCommand(@"
-                SELECT COUNT(*)
-                FROM INFORMATION_SCHEMA.TABLES
-                WHERE TABLE_NAME IN ('Users', 'Interactions')", conn);
-                int tableCount = (int)tableCheckCmd.ExecuteScalar();
-                if (tableCount < 2)
-                {
-                    var errorMsg = "Required tables 'Users' or 'Interactions' are missing in the database.";
-                    _logger.LogError(errorMsg);
-                    ViewBag.ErrorMessage = errorMsg;
-                    return View(userDetailsList);
-                }
-
-                var userColumnCheckCmd = new SqlCommand(@"
-                SELECT COUNT(*)
-                FROM INFORMATION_SCHEMA.COLUMNS
-                WHERE TABLE_NAME = 'Users'
-                AND COLUMN_NAME IN ('UserId', 'Name', 'Phone', 'Email', 'Experience',
-                                    'EmploymentStatus', 'Reason', 'CreatedAt',
-                                    'IDProofPath', 'IDProofType')", conn);
-                int userColumnCount = (int)userColumnCheckCmd.ExecuteScalar();
-                if (userColumnCount < 10)
-                {
-                    var errorMsg = "One or more required columns are missing in the Users table.";
-                    _logger.LogError(errorMsg);
-                    ViewBag.ErrorMessage = errorMsg;
-                    return View(userDetailsList);
-                }
-
-                var interactionColumnCheckCmd = new SqlCommand(@"
-                SELECT COUNT(*)
-                FROM INFORMATION_SCHEMA.COLUMNS
-                WHERE TABLE_NAME = 'Interactions'
-                AND COLUMN_NAME IN ('InteractionId', 'UserId', 'InteractionType', 'JobTitle',
-                                    'QuestionIndex', 'Questions', 'Answers', 'IsComplete',
-                                    'IsSubmitted', 'TabSwitchCount', 'ConversationText',
-                                    'UserMessage', 'BotResponse', 'Model', 'CreatedAt', 'VideoPath')", conn);
-                int interactionColumnCount = (int)interactionColumnCheckCmd.ExecuteScalar();
-                if (interactionColumnCount < 16) // Updated to include VideoPath
-                {
-                    var errorMsg = "One or more required columns are missing in the Interactions table.";
-                    _logger.LogError(errorMsg);
-                    ViewBag.ErrorMessage = errorMsg;
-                    return View(userDetailsList);
-                }
-
                 var cmd = new SqlCommand(@"
-                SELECT u.UserId, u.Name, u.Phone, u.Email, u.Experience, u.EmploymentStatus,
-                       u.Reason, u.CreatedAt, u.IDProofPath, u.IDProofType,
-                       i.VideoPath,
-                       ISNULL((SELECT COUNT(*) FROM Interactions WHERE UserId = u.UserId AND InteractionType = 'Interview' AND IsComplete = 1), 0) AS InterviewCount,
-                       ISNULL((SELECT TOP 1 IsSubmitted FROM Interactions WHERE UserId = u.UserId AND InteractionType = 'Interview' AND IsComplete = 1 ORDER BY CreatedAt DESC), 0) AS IsSubmitted
-                FROM Users u
-                LEFT JOIN Interactions i ON u.UserId = i.UserId AND i.InteractionType = 'Interview'
-                WHERE i.InteractionId = (SELECT MAX(InteractionId) FROM Interactions WHERE UserId = u.UserId AND InteractionType = 'Interview') OR i.InteractionId IS NULL", conn);
+            SELECT u.UserId, u.Name, u.Phone, u.Email, u.Experience, u.EmploymentStatus,
+                   u.Reason, u.CreatedAt, u.IDProofPath, u.IDProofType,
+                   u.EmailSent, u.WhatsAppSent, i.VideoPath,
+                   ISNULL((SELECT COUNT(*) FROM Interactions WHERE UserId = u.UserId AND InteractionType = 'Interview' AND IsComplete = 1), 0) AS InterviewCount,
+                   ISNULL((SELECT TOP 1 CASE 
+                                          WHEN IsComplete = 1 AND IsSubmitted = 1 THEN 'Submitted'
+                                          WHEN IsComplete = 1 AND IsSubmitted = 0 THEN 'Completed but not submitted'
+                                          WHEN IsComplete = 0 THEN 'In progress'
+                                          ELSE 'Not started'
+                                        END 
+                           FROM Interactions 
+                           WHERE UserId = u.UserId AND InteractionType = 'Interview' 
+                           ORDER BY CreatedAt DESC), 'Not started') AS InterviewStatus,
+                   ISNULL((SELECT TOP 1 TabSwitchCount 
+                           FROM Interactions 
+                           WHERE UserId = u.UserId AND InteractionType = 'Interview' AND IsComplete = 1 
+                           ORDER BY CreatedAt DESC), 0) AS TabSwitchCount
+            FROM Users u
+            LEFT JOIN Interactions i ON u.UserId = i.UserId 
+                AND i.InteractionType = 'Interview'
+                AND i.InteractionId = (SELECT MAX(InteractionId) FROM Interactions WHERE UserId = u.UserId AND InteractionType = 'Interview')", conn);
 
                 using var reader = cmd.ExecuteReader();
                 var userDict = new Dictionary<string, UserAdminViewModel>();
@@ -266,8 +102,11 @@ namespace ChatBot.Controllers
                         IDProofPath = reader["IDProofPath"] != DBNull.Value ? reader["IDProofPath"].ToString() : string.Empty,
                         IDProofType = reader["IDProofType"] != DBNull.Value ? reader["IDProofType"].ToString() : string.Empty,
                         InterviewVideoPath = reader["VideoPath"] != DBNull.Value ? reader["VideoPath"].ToString() : string.Empty,
-                        InterviewCount = (int)reader["InterviewCount"],
-                        IsInterviewSubmitted = (bool)reader["IsSubmitted"],
+                        InterviewCount = reader["InterviewCount"] != DBNull.Value ? (int)reader["InterviewCount"] : 0,
+                        InterviewStatus = reader["InterviewStatus"] != DBNull.Value ? reader["InterviewStatus"].ToString() : "Not started",
+                        TabSwitchCount = reader["TabSwitchCount"] != DBNull.Value ? (int)reader["TabSwitchCount"] : 0,
+                        EmailSent = reader["EmailSent"] != DBNull.Value ? (bool)reader["EmailSent"] : false,
+                        WhatsAppSent = reader["WhatsAppSent"] != DBNull.Value ? (bool)reader["WhatsAppSent"] : false,
                         CompanyQueries = new List<string>()
                     };
                     userDict[user.UserId] = user;
@@ -276,13 +115,13 @@ namespace ChatBot.Controllers
                 reader.Close();
 
                 var queryCmd = new SqlCommand(@"
-                SELECT UserId, UserMessage
-                FROM Interactions
-                WHERE InteractionType = 'Chat' AND UserMessage IS NOT NULL
-                AND BotResponse NOT LIKE '%Question%'
-                AND BotResponse NOT LIKE '%interview for%'
-                AND BotResponse NOT LIKE '%upload your resume%'
-                AND BotResponse NOT LIKE '%Please provide%'", conn);
+            SELECT UserId, UserMessage
+            FROM Interactions
+            WHERE InteractionType = 'Chat' AND UserMessage IS NOT NULL
+            AND BotResponse NOT LIKE '%Question%'
+            AND BotResponse NOT LIKE '%interview for%'
+            AND BotResponse NOT LIKE '%upload your resume%'
+            AND BotResponse NOT LIKE '%Please provide%'", conn);
                 using var queryReader = queryCmd.ExecuteReader();
                 while (queryReader.Read())
                 {
@@ -293,23 +132,26 @@ namespace ChatBot.Controllers
                         userDict[userId].CompanyQueries.Add(userMessage);
                     }
                 }
-            }
-            catch (SqlException sqlEx)
-            {
-                var errorMsg = $"SQL Error retrieving user data: {sqlEx.Message}, Error Code: {sqlEx.Number}, Line: {sqlEx.LineNumber}";
-                _logger.LogError(sqlEx, errorMsg);
-                ViewBag.ErrorMessage = "Database error occurred. Please check the server logs or try again later.";
+                queryReader.Close();
+
+                try
+                {
+                    ViewData["Templates"] = _chatDbService.GetMessageTemplates() ?? new List<MessageTemplate>();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error retrieving message templates");
+                    ViewData["Templates"] = new List<MessageTemplate>();
+                }
+
                 return View(userDetailsList);
             }
             catch (Exception ex)
             {
-                var errorMsg = $"Error retrieving user data: {ex.Message}";
-                _logger.LogError(ex, errorMsg);
+                _logger.LogError(ex, "Error retrieving user data for admin dashboard");
                 ViewBag.ErrorMessage = "An unexpected error occurred. Please check the server logs or try again later.";
                 return View(userDetailsList);
             }
-
-            return View(userDetailsList);
         }
 
         [HttpGet]
@@ -390,28 +232,141 @@ namespace ChatBot.Controllers
         }
 
         [HttpGet]
+        public IActionResult ManageTemplates()
+        {
+            var templates = _chatDbService.GetMessageTemplates();
+            return View(templates);
+        }
+
+        [HttpPost]
+        public IActionResult SaveTemplate(int? templateId, string templateName, string messageType, string templateContent, bool isDefault)
+        {
+            try
+            {
+                if (isDefault)
+                {
+                    // Ensure only one default template per message type
+                    using var conn = new SqlConnection(_connectionString);
+                    conn.Open();
+                    var cmd = new SqlCommand("UPDATE MessageTemplates SET IsDefault = 0 WHERE MessageType = @MessageType", conn);
+                    cmd.Parameters.AddWithValue("@MessageType", messageType);
+                    cmd.ExecuteNonQuery();
+                }
+
+                if (templateId.HasValue)
+                {
+                    _chatDbService.UpdateMessageTemplate(templateId.Value, templateName, messageType, templateContent, isDefault);
+                }
+                else
+                {
+                    _chatDbService.SaveMessageTemplate(templateName, messageType, templateContent, isDefault);
+                }
+                return RedirectToAction("ManageTemplates");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error saving template: {TemplateName}", templateName);
+                ViewBag.ErrorMessage = "Error saving template. Please try again.";
+                return View("ManageTemplates", _chatDbService.GetMessageTemplates());
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SendPassMessage(string userId, string templateName)
+        {
+            try
+            {
+                using var conn = new SqlConnection(_connectionString);
+                conn.Open();
+                var cmd = new SqlCommand(@"
+            SELECT u.Name, u.Email, u.Phone, u.EmailSent, u.WhatsAppSent, i.JobTitle
+            FROM Users u
+            LEFT JOIN Interactions i ON u.UserId = i.UserId AND i.InteractionType = 'Interview'
+            WHERE u.UserId = @UserId 
+            AND (i.InteractionId = (SELECT MAX(InteractionId) FROM Interactions WHERE UserId = u.UserId AND InteractionType = 'Interview') OR i.InteractionId IS NULL)", conn);
+                cmd.Parameters.AddWithValue("@UserId", userId);
+                using var reader = cmd.ExecuteReader();
+                if (reader.Read())
+                {
+                    var name = reader["Name"] != DBNull.Value ? reader["Name"].ToString() : "Candidate";
+                    var email = reader["Email"] != DBNull.Value ? reader["Email"].ToString() : null;
+                    var phone = reader["Phone"] != DBNull.Value ? reader["Phone"].ToString() : null;
+                    var jobTitle = reader["JobTitle"] != DBNull.Value ? reader["JobTitle"].ToString() : "the position";
+                    var emailSent = reader["EmailSent"] != DBNull.Value ? (bool)reader["EmailSent"] : false;
+                    var whatsappSent = reader["WhatsAppSent"] != DBNull.Value ? (bool)reader["WhatsAppSent"] : false;
+                    reader.Close();
+
+                    var templates = _chatDbService.GetMessageTemplates() ?? new List<MessageTemplate>();
+                    var template = templates.FirstOrDefault(t => t.TemplateName == templateName && t.MessageType == "Email");
+                    if (template != null && !string.IsNullOrEmpty(email))
+                    {
+                        var body = template.TemplateContent.Replace("{Name}", name).Replace("{JobTitle}", jobTitle);
+                        await _notificationService.SendEmailAsync(email, "Interview Result", body);
+                        _chatDbService.UpdateUserMessageStatus(userId, true, whatsappSent);
+                        TempData["SuccessMessage"] = $"Email sent successfully to {email}.";
+                    }
+                    else if (template != null && string.IsNullOrEmpty(email))
+                    {
+                        TempData["ErrorMessage"] = "No email address available for this user.";
+                    }
+                    else if (template == null && templates.Any(t => t.TemplateName == templateName && t.MessageType == "WhatsApp"))
+                    {
+                        template = templates.FirstOrDefault(t => t.TemplateName == templateName && t.MessageType == "WhatsApp");
+                        if (template != null && !string.IsNullOrEmpty(phone) && !whatsappSent)
+                        {
+                            var body = template.TemplateContent.Replace("{Name}", name).Replace("{JobTitle}", jobTitle);
+                            await _notificationService.SendWhatsAppAsync(phone, body);
+                            _chatDbService.UpdateUserMessageStatus(userId, emailSent, true);
+                            TempData["SuccessMessage"] = $"{TempData["SuccessMessage"] ?? ""} WhatsApp message sent successfully to {phone}.";
+                        }
+                        else if (template != null && string.IsNullOrEmpty(phone))
+                        {
+                            TempData["ErrorMessage"] = $"{TempData["ErrorMessage"] ?? ""} No phone number available for this user.";
+                        }
+                        else if (template != null && whatsappSent)
+                        {
+                            TempData["ErrorMessage"] = $"{TempData["ErrorMessage"] ?? ""} WhatsApp message already sent to this user.";
+                        }
+                        else
+                        {
+                            TempData["ErrorMessage"] = $"{TempData["ErrorMessage"] ?? ""} WhatsApp template '{templateName}' not found.";
+                        }
+                    }
+                    else
+                    {
+                        TempData["ErrorMessage"] = $"Template '{templateName}' not found.";
+                    }
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "User not found.";
+                }
+                return RedirectToAction("Index");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error sending pass message for UserId: {UserId}", userId);
+                TempData["ErrorMessage"] = "Error sending message. Please try again.";
+                return RedirectToAction("Index");
+            }
+        }
+
+        [HttpGet]
         public IActionResult ViewConversation(string userId)
         {
-            if (string.IsNullOrEmpty(userId))
-            {
-                _logger.LogWarning("ViewConversation called with null or empty userId.");
-                return NotFound("User ID is required.");
-            }
-
             var conversations = new List<ConversationViewModel>();
             try
             {
                 using var conn = new SqlConnection(_connectionString);
                 conn.Open();
-
                 var cmd = new SqlCommand(@"
-                    SELECT u.Name, u.Phone, u.Email, i.ConversationText, i.CreatedAt
-                    FROM Interactions i
-                    JOIN Users u ON i.UserId = u.UserId
-                    WHERE i.UserId = @UserId AND i.InteractionType = 'Chat' AND i.ConversationText IS NOT NULL
-                    ORDER BY i.CreatedAt ASC", conn); // Changed to ASC for chronological order
+                SELECT u.Name, u.Phone, u.Email, i.ConversationText, i.CreatedAt,
+                       COALESCE((SELECT TOP 1 TabSwitchCount FROM Interactions i2 WHERE i2.UserId = u.UserId AND i2.InteractionType = 'Interview' AND i2.IsComplete = 1 ORDER BY i2.CreatedAt DESC), 0) AS TabSwitchCount
+                FROM Interactions i
+                JOIN Users u ON i.UserId = u.UserId
+                WHERE i.UserId = @UserId AND i.InteractionType = 'Chat' AND i.ConversationText IS NOT NULL
+                ORDER BY i.CreatedAt ASC", conn);
                 cmd.Parameters.AddWithValue("@UserId", userId);
-
                 using var reader = cmd.ExecuteReader();
                 while (reader.Read())
                 {
@@ -422,31 +377,22 @@ namespace ChatBot.Controllers
                         Phone = reader["Phone"] != DBNull.Value ? reader["Phone"].ToString() : string.Empty,
                         Email = reader["Email"] != DBNull.Value ? reader["Email"].ToString() : string.Empty,
                         ConversationText = reader["ConversationText"] != DBNull.Value ? reader["ConversationText"].ToString() : string.Empty,
-                        CreatedAt = (DateTime)reader["CreatedAt"]
+                        CreatedAt = (DateTime)reader["CreatedAt"],
+                        TabSwitchCount = (int)reader["TabSwitchCount"]
                     };
                     conversations.Add(conversation);
                 }
-
                 if (conversations.Count == 0)
                 {
-                    _logger.LogInformation("No conversation history found for UserId: {UserId}", userId);
                     ViewBag.ErrorMessage = "No conversation history found for this user.";
                 }
             }
-            catch (SqlException sqlEx)
-            {
-                var errorMsg = $"SQL Error retrieving conversation history for UserId: {userId}, Error: {sqlEx.Message}, Error Code: {sqlEx.Number}";
-                _logger.LogError(sqlEx, errorMsg);
-                ViewBag.ErrorMessage = "Database error occurred while retrieving conversation history. Please check the server logs or try again later.";
-            }
             catch (Exception ex)
             {
-                var errorMsg = $"Error retrieving conversation history for UserId: {userId}, Error: {ex.Message}";
-                _logger.LogError(ex, errorMsg);
-                ViewBag.ErrorMessage = "An unexpected error occurred while retrieving conversation history. Please check the server logs or try again later.";
+                _logger.LogError(ex, "Error retrieving conversation history for UserId: {UserId}", userId);
+                ViewBag.ErrorMessage = "Error retrieving conversation history.";
             }
-
-            return View(conversations);
+            return View("ViewConversation", conversations);
         }
 
         //[HttpGet]
@@ -515,9 +461,12 @@ namespace ChatBot.Controllers
         public string IDProofPath { get; set; }
         public string IDProofType { get; set; }
         public int InterviewCount { get; set; }
-        public bool IsInterviewSubmitted { get; set; }
+        public string InterviewStatus { get; set; } // Changed from IsInterviewSubmitted
         public string InterviewVideoPath { get; set; }
         public List<string> CompanyQueries { get; set; }
+        public int TabSwitchCount { get; set; }
+        public bool EmailSent { get; set; } // Added to display email status
+        public bool WhatsAppSent { get; set; } 
     }
 
     public class ConversationViewModel
@@ -528,5 +477,6 @@ namespace ChatBot.Controllers
         public string Email { get; set; }
         public string ConversationText { get; set; }
         public DateTime CreatedAt { get; set; }
+        public int TabSwitchCount { get; set; }
     }
 }

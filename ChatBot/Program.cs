@@ -1,4 +1,5 @@
 ﻿using ChatBot.Services;
+using Xceed.Document.NET;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,6 +9,7 @@ builder.Services.AddSingleton<ChatGPTService>();
 builder.Services.AddScoped<ChatDbService>();
 builder.Services.AddHostedService<ScraperHostedService>();
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddSingleton<NotificationService>();
 
 
 

@@ -1,94 +1,138 @@
 ﻿@model List<ChatBot.Controllers.UserAdminViewModel>
+@using ChatBot.Models
 @{
     ViewData["Title"] = "Admin Dashboard";
 }
 
 <h2>Admin Dashboard - User Details</h2>
 
+<a href="@Url.Action("ManageTemplates")" class="btn btn-secondary mb-3">Manage Message Templates</a>
+
 @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
 {
     <div class="alert alert-danger">@ViewBag.ErrorMessage</div>
 }
+@if (!string.IsNullOrEmpty(TempData["SuccessMessage"]?.ToString()))
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+@if (!string.IsNullOrEmpty(TempData["ErrorMessage"]?.ToString()))
+{
+    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+}
 
-<table class="table table-bordered table-striped">
-    <thead>
-        <tr>
-            <th>User ID</th>
-            <th>Name</th>
-            <th>Phone</th>
-            <th>Email</th>
-            <th>Experience</th>
-            <th>Employment Status</th>
-            <th>Reason</th>
-            <th>Created At</th>
-            <th>ID Proof</th>
-            <th>Interview Status</th>
-            <th>Company Queries</th>
-            <th>Conversation History</th>
-            <th>Interview Video</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var user in Model)
-        {
+@if (Model.Any())
+{
+    <table class="table table-bordered table-striped">
+        <thead>
             <tr>
-                <td>@user.UserId</td>
-                <td>@user.Name</td>
-                <td>@user.Phone</td>
-                <td>@user.Email</td>
-                <td>@user.Experience</td>
-                <td>@user.EmploymentStatus</td>
-                <td>@user.Reason</td>
-                <td>@(user.CreatedAt?.ToString("yyyy-MM-dd HH:mm:ss") ?? "N/A")</td>
-                <td>
-                    @if (!string.IsNullOrEmpty(user.IDProofPath))
-                    {
-                        <a href="@Url.Action("ViewIDProof", "Admin", new { filePath = user.IDProofPath })" target="_blank">View ID Proof</a>
-                    }
-                    else
-                    {
-                        <span>N/A</span>
-                    }
-                </td>
-                <td>
-                    @(user.InterviewCount > 0 ? (user.IsInterviewSubmitted ? "Submitted" : "Completed, Not Submitted") : "Not Taken")
-                </td>
-                <td>
-                    @if (user.CompanyQueries.Any())
-                    {
-                        <ul>
-                            @foreach (var query in user.CompanyQueries.Take(5))
-                            {
-                                <li>@query</li>
-                            }
-                            @if (user.CompanyQueries.Count > 5)
-                            {
-                                <li>... (@(user.CompanyQueries.Count - 5) more)</li>
-                            }
-                        </ul>
-                    }
-                    else
-                    {
-                        <span>None</span>
-                    }
-                </td>
-                <td>
-                    <a href="@Url.Action("ViewConversation", "Admin", new { userId = user.UserId })">View Conversation</a>
-                </td>
-                <td>
-                    @if (!string.IsNullOrEmpty(user.InterviewVideoPath))
-                    {
-                        <a href="@Url.Action("ViewInterviewVideo", "Admin", new { filePath = user.InterviewVideoPath })" target="_blank">View Video</a>
-                    }
-                    else
-                    {
-                        <span>N/A</span>
-                    }
-                </td>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Tab Switches</th>
+                <th>Experience</th>
+                <th>Employment Status</th>
+                <th>Reason</th>
+                <th>Created At</th>
+                <th>ID Proof</th>
+                <th>Interview Count</th>
+                <th>Interview Status</th>
+                <th>Email Sent</th>
+                <th>WhatsApp Sent</th>
+                <th>Interview Video</th>
+                <th>Company Queries</th>
+                <th>Conversation</th>
+                <th>Actions</th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach (var user in Model)
+            {
+                <tr>
+                    <td>@user.Name</td>
+                    <td>@user.Email</td>
+                    <td>@user.Phone</td>
+                    <td class="@(user.TabSwitchCount > 0 ? "tab-switch-highlight" : "")">@user.TabSwitchCount</td>
+                    <td>@user.Experience</td>
+                    <td>@user.EmploymentStatus</td>
+                    <td>@user.Reason</td>
+                    <td>@(user.CreatedAt?.ToString("yyyy-MM-dd HH:mm:ss") ?? "N/A")</td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(user.IDProofPath))
+                        {
+                            <a href="@Url.Action("ViewIDProof", "Chat", new { filePath = user.IDProofPath })" target="_blank">View ID</a>
+                        }
+                        else
+                        {
+                            <span>N/A</span>
+                        }
+                    </td>
+                    <td>@user.InterviewCount</td>
+                    <td>@user.InterviewStatus</td>
+                    <td>@(user.EmailSent ? "Yes" : "No")</td>
+                    <td>@(user.WhatsAppSent ? "Yes" : "No")</td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(user.InterviewVideoPath))
+                        {
+                            <a href="@Url.Action("ViewInterviewVideo", "Chat", new { filePath = user.InterviewVideoPath })" target="_blank">View Video</a>
+                        }
+                        else
+                        {
+                            <span>N/A</span>
+                        }
+                    </td>
+                    <td>
+                        @if (user.CompanyQueries.Any())
+                        {
+                            <ul>
+                                @foreach (var query in user.CompanyQueries)
+                                {
+                                    <li>@query</li>
+                                }
+                            </ul>
+                        }
+                        else
+                        {
+                            <span>No queries</span>
+                        }
+                    </td>
+                    <td>
+                        <a href="@Url.Action("ViewConversation", new { userId = user.UserId })">View Conversation</a>
+                    </td>
+                    <td>
+                        @{
+                            var availableTemplates = (ViewData["Templates"] as List<MessageTemplate> ?? new List<MessageTemplate>())
+                            .Where(t => (t.MessageType == "Email" && !string.IsNullOrEmpty(user.Email)) ||
+                            (t.MessageType == "WhatsApp" && !string.IsNullOrEmpty(user.Phone) && !user.WhatsAppSent))
+                            .ToList();
+                        }
+                        @if (user.InterviewStatus == "Submitted" && availableTemplates.Any())
+                        {
+                            <form asp-action="SendPassMessage" method="post" class="d-inline">
+                                <input type="hidden" name="userId" value="@user.UserId" />
+                                <select name="templateName" class="form-control d-inline-block" style="width: auto;">
+                                    @foreach (var template in availableTemplates)
+                                    {
+                                        <option value="@template.TemplateName">@template.TemplateName (@template.MessageType)</option>
+                                    }
+                                </select>
+                                <button type="submit" class="btn btn-sm btn-success">Send Message</button>
+                            </form>
+                        }
+                        else if (user.InterviewStatus == "Submitted")
+                        {
+                            <span>No contact info or message already sent.</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No user details available.</p>
+}
 
 <style>
     .table {
@@ -99,6 +143,11 @@
         .table th, .table td {
             padding: 10px;
             text-align: left;
+            vertical-align: middle;
+        }
+
+        .table th {
+            background-color: #f4f4f4;
         }
 
     .alert {
@@ -109,5 +158,19 @@
     ul {
         margin: 0;
         padding-left: 20px;
+    }
+
+    .tab-switch-highlight {
+        color: #d9534f;
+        font-weight: bold;
+    }
+
+    .btn {
+        margin-right: 5px;
+    }
+
+    .form-control.d-inline-block {
+        display: inline-block;
+        margin-right: 5px;
     }
 </style>
