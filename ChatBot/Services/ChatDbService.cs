@@ -83,7 +83,7 @@ namespace ChatBot.Services
                 var cmd = new SqlCommand(@"
                     SELECT COUNT(*) 
                     FROM Interactions 
-                    WHERE InteractionType = 'Interview' AND IsComplete = 1
+                    WHERE Questions IS NOT NULL AND IsComplete = 1
                     AND UserId IN (
                         SELECT UserId 
                         FROM Users 
@@ -115,7 +115,7 @@ namespace ChatBot.Services
                 var cmd = new SqlCommand(@"
                     UPDATE Interactions 
                     SET IsSubmitted = 1
-                    WHERE InteractionId = @InteractionId AND InteractionType = 'Interview'", conn);
+                    WHERE InteractionId = @InteractionId AND Questions IS NOT NULL", conn);
 
                 cmd.Parameters.AddWithValue("@InteractionId", interactionId);
                 cmd.ExecuteNonQuery();
@@ -135,8 +135,8 @@ namespace ChatBot.Services
                 conn.Open();
 
                 var cmd = new SqlCommand(@"
-                    INSERT INTO Interactions (UserId, InteractionType, UserMessage, BotResponse, Model, CreatedAt)
-                    VALUES (@UserId, 'Chat', @UserMessage, @BotResponse, @Model, @CreatedAt)", conn);
+                    INSERT INTO Interactions (UserId, UserMessage, BotResponse, Model, CreatedAt)
+                    VALUES (@UserId, @UserMessage, @BotResponse, @Model, @CreatedAt)", conn);
 
                 cmd.Parameters.AddWithValue("@UserId", message.UserId ?? "");
                 cmd.Parameters.AddWithValue("@UserMessage", message.UserMessage ?? "");
@@ -162,7 +162,7 @@ namespace ChatBot.Services
 
                 var cmd = new SqlCommand(@"
                     SELECT TOP 1 * FROM Interactions 
-                    WHERE UserId = @UserId AND InteractionType = 'Interview'
+                    WHERE UserId = @UserId AND Questions IS NOT NULL
                     ORDER BY CreatedAt DESC", conn);
                 cmd.Parameters.AddWithValue("@UserId", userId);
 
@@ -194,39 +194,48 @@ namespace ChatBot.Services
             }
         }
 
-        //public void UpdateInterviewSession(InterviewSession session)
-        //{
-        //    try
-        //    {
-        //        using var conn = new SqlConnection(_connectionString);
-        //        conn.Open();
+        public void UpdateInterviewSession(InterviewSession session)
+        {
+            try
+            {
+                using var conn = new SqlConnection(_connectionString);
+                conn.Open();
 
-        //        var cmd = new SqlCommand(@"
-        //            UPDATE Interactions 
-        //            SET QuestionIndex = @QuestionIndex, 
-        //                Questions = @Questions, 
-        //                Answers = @Answers,
-        //                IsComplete = @IsComplete,
-        //                TabSwitchCount = @TabSwitchCount,
-        //                VideoPath = @VideoPath
-        //            WHERE InteractionId = @InteractionId AND InteractionType = 'Interview'", conn);
+                // Validate VideoPath
+                if (!string.IsNullOrEmpty(session.VideoPath) && !session.VideoPath.Contains(_interviewVideoFolder))
+                {
+                    session.VideoPath = Path.Combine(Directory.GetCurrentDirectory(), _interviewVideoFolder, session.VideoPath);
+                    _logger.LogInformation("Normalized VideoPath to: {VideoPath}", session.VideoPath);
+                }
 
-        //        cmd.Parameters.AddWithValue("@InteractionId", session.Id);
-        //        cmd.Parameters.AddWithValue("@QuestionIndex", session.QuestionIndex);
-        //        cmd.Parameters.AddWithValue("@Questions", JsonConvert.SerializeObject(session.Questions));
-        //        cmd.Parameters.AddWithValue("@Answers", JsonConvert.SerializeObject(session.Answers));
-        //        cmd.Parameters.AddWithValue("@IsComplete", session.IsComplete);
-        //        cmd.Parameters.AddWithValue("@TabSwitchCount", session.TabSwitchCount);
-        //        cmd.Parameters.AddWithValue("@VideoPath", session.VideoPath ?? (object)DBNull.Value);
+                var cmd = new SqlCommand(@"
+                    UPDATE Interactions
+                    SET QuestionIndex = @QuestionIndex,
+                        Questions = @Questions,
+                        Answers = @Answers,
+                        IsComplete = @IsComplete,
+                        IsSubmitted = @IsSubmitted,
+                        TabSwitchCount = @TabSwitchCount,
+                        VideoPath = @VideoPath
+                    WHERE InteractionId = @InteractionId AND Questions IS NOT NULL", conn);
 
-        //        cmd.ExecuteNonQuery();
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(ex, "Error updating interview session for InteractionId: {InteractionId}", session.Id);
-        //        throw;
-        //    }
-        //}
+                cmd.Parameters.AddWithValue("@InteractionId", session.Id);
+                cmd.Parameters.AddWithValue("@QuestionIndex", session.QuestionIndex);
+                cmd.Parameters.AddWithValue("@Questions", JsonConvert.SerializeObject(session.Questions));
+                cmd.Parameters.AddWithValue("@Answers", JsonConvert.SerializeObject(session.Answers));
+                cmd.Parameters.AddWithValue("@IsComplete", session.IsComplete);
+                cmd.Parameters.AddWithValue("@IsSubmitted", session.IsSubmitted);
+                cmd.Parameters.AddWithValue("@TabSwitchCount", session.TabSwitchCount);
+                cmd.Parameters.AddWithValue("@VideoPath", session.VideoPath ?? (object)DBNull.Value);
+
+                cmd.ExecuteNonQuery();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating interview session for InteractionId: {InteractionId}", session.Id);
+                throw;
+            }
+        }
 
         public void UpdateTabSwitchCount(string userId, int count)
         {
@@ -238,7 +247,7 @@ namespace ChatBot.Services
                 var cmd = new SqlCommand(@"
                     UPDATE Interactions 
                     SET TabSwitchCount = COALESCE(TabSwitchCount, 0) + @Count
-                    WHERE UserId = @UserId AND InteractionType = 'Interview' AND IsComplete = 0", conn);
+                    WHERE UserId = @UserId AND Questions IS NOT NULL AND IsComplete = 0", conn);
 
                 cmd.Parameters.AddWithValue("@UserId", userId);
                 cmd.Parameters.AddWithValue("@Count", count);
@@ -261,13 +270,12 @@ namespace ChatBot.Services
                 var conversationText = JsonConvert.SerializeObject(messages);
                 var cmd = new SqlCommand(
                     @"INSERT INTO Interactions (
-                        UserId, InteractionType, ConversationText, CreatedAt
+                        UserId, ConversationText, CreatedAt
                     ) VALUES (
-                        @UserId, @InteractionType, @ConversationText, @CreatedAt
+                        @UserId, @ConversationText, @CreatedAt
                     )", conn);
 
                 cmd.Parameters.AddWithValue("@UserId", userId);
-                cmd.Parameters.AddWithValue("@InteractionType", "Chat");
                 cmd.Parameters.AddWithValue("@ConversationText", conversationText);
                 cmd.Parameters.AddWithValue("@CreatedAt", DateTime.Now);
 
@@ -278,44 +286,6 @@ namespace ChatBot.Services
                 throw new Exception($"Error saving full conversation for UserId: {userId}", ex);
             }
         }
-
-        //public void SaveInterviewSession(InterviewSession session)
-        //{
-        //    try
-        //    {
-        //        using var conn = new SqlConnection(_connectionString);
-        //        conn.Open();
-
-        //        var cmd = new SqlCommand(
-        //            @"INSERT INTO Interactions (
-        //                UserId, InteractionType, JobTitle, QuestionIndex, 
-        //                Questions, Answers, IsComplete, IsSubmitted, 
-        //                TabSwitchCount, VideoPath, CreatedAt
-        //            ) VALUES (
-        //                @UserId, @InteractionType, @JobTitle, @QuestionIndex, 
-        //                @Questions, @Answers, @IsComplete, @IsSubmitted, 
-        //                @TabSwitchCount, @VideoPath, @CreatedAt
-        //            ); SELECT SCOPE_IDENTITY();", conn);
-
-        //        cmd.Parameters.AddWithValue("@UserId", session.UserId);
-        //        cmd.Parameters.AddWithValue("@InteractionType", "Interview");
-        //        cmd.Parameters.AddWithValue("@JobTitle", (object)session.JobTitle ?? DBNull.Value);
-        //        cmd.Parameters.AddWithValue("@QuestionIndex", session.QuestionIndex);
-        //        cmd.Parameters.AddWithValue("@Questions", JsonConvert.SerializeObject(session.Questions));
-        //        cmd.Parameters.AddWithValue("@Answers", JsonConvert.SerializeObject(session.Answers));
-        //        cmd.Parameters.AddWithValue("@IsComplete", session.IsComplete);
-        //        cmd.Parameters.AddWithValue("@IsSubmitted", session.IsSubmitted);
-        //        cmd.Parameters.AddWithValue("@TabSwitchCount", session.TabSwitchCount);
-        //        cmd.Parameters.AddWithValue("@VideoPath", session.VideoPath ?? (object)DBNull.Value);
-        //        cmd.Parameters.AddWithValue("@CreatedAt", DateTime.Now);
-
-        //        session.Id = Convert.ToInt32(cmd.ExecuteScalar());
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        throw new Exception($"Error saving interview session for UserId: {session.UserId}", ex);
-        //    }
-        //}
 
         public void SaveInterviewSession(InterviewSession session)
         {
@@ -333,17 +303,16 @@ namespace ChatBot.Services
 
                 var cmd = new SqlCommand(
                     @"INSERT INTO Interactions (
-                    UserId, InteractionType, JobTitle, QuestionIndex,
+                    UserId, JobTitle, QuestionIndex,
                     Questions, Answers, IsComplete, IsSubmitted,
                     TabSwitchCount, VideoPath, CreatedAt
                 ) VALUES (
-                    @UserId, @InteractionType, @JobTitle, @QuestionIndex,
+                    @UserId, @JobTitle, @QuestionIndex,
                     @Questions, @Answers, @IsComplete, @IsSubmitted,
                     @TabSwitchCount, @VideoPath, @CreatedAt
                 ); SELECT SCOPE_IDENTITY();", conn);
 
                 cmd.Parameters.AddWithValue("@UserId", session.UserId);
-                cmd.Parameters.AddWithValue("@InteractionType", "Interview");
                 cmd.Parameters.AddWithValue("@JobTitle", (object)session.JobTitle ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("@QuestionIndex", session.QuestionIndex);
                 cmd.Parameters.AddWithValue("@Questions", JsonConvert.SerializeObject(session.Questions));
@@ -359,49 +328,6 @@ namespace ChatBot.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error saving interview session for UserId: {UserId}", session.UserId);
-                throw;
-            }
-        }
-
-        public void UpdateInterviewSession(InterviewSession session)
-        {
-            try
-            {
-                using var conn = new SqlConnection(_connectionString);
-                conn.Open();
-
-                // Validate VideoPath
-                if (!string.IsNullOrEmpty(session.VideoPath) && !session.VideoPath.Contains(_interviewVideoFolder))
-                {
-                    session.VideoPath = Path.Combine(Directory.GetCurrentDirectory(), _interviewVideoFolder, session.VideoPath);
-                    _logger.LogInformation("Normalized VideoPath to: {VideoPath}", session.VideoPath);
-                }
-
-                var cmd = new SqlCommand(@"
-                UPDATE Interactions
-                SET QuestionIndex = @QuestionIndex,
-                    Questions = @Questions,
-                    Answers = @Answers,
-                    IsComplete = @IsComplete,
-                    IsSubmitted = @IsSubmitted,
-                    TabSwitchCount = @TabSwitchCount,
-                    VideoPath = @VideoPath
-                WHERE InteractionId = @InteractionId AND InteractionType = 'Interview'", conn);
-
-                cmd.Parameters.AddWithValue("@InteractionId", session.Id);
-                cmd.Parameters.AddWithValue("@QuestionIndex", session.QuestionIndex);
-                cmd.Parameters.AddWithValue("@Questions", JsonConvert.SerializeObject(session.Questions));
-                cmd.Parameters.AddWithValue("@Answers", JsonConvert.SerializeObject(session.Answers));
-                cmd.Parameters.AddWithValue("@IsComplete", session.IsComplete);
-                cmd.Parameters.AddWithValue("@IsSubmitted", session.IsSubmitted);
-                cmd.Parameters.AddWithValue("@TabSwitchCount", session.TabSwitchCount);
-                cmd.Parameters.AddWithValue("@VideoPath", session.VideoPath ?? (object)DBNull.Value);
-
-                cmd.ExecuteNonQuery();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error updating interview session for InteractionId: {InteractionId}", session.Id);
                 throw;
             }
         }
@@ -502,19 +428,21 @@ namespace ChatBot.Services
             }
         }
 
-        // Add method to fetch user message status
-        public (bool EmailSent, bool SMSSent) GetUserMessageStatus(string userId)
+        public (bool EmailSent, bool WhatsAppSent) GetUserMessageStatus(string userId)
         {
             try
             {
                 using var conn = new SqlConnection(_connectionString);
                 conn.Open();
-                var cmd = new SqlCommand("SELECT EmailSent, SMSSent FROM Users WHERE UserId = @UserId", conn);
+                var cmd = new SqlCommand("SELECT EmailSent, WhatsAppSent FROM Users WHERE UserId = @UserId", conn);
                 cmd.Parameters.AddWithValue("@UserId", userId);
                 using var reader = cmd.ExecuteReader();
                 if (reader.Read())
                 {
-                    return ((bool)reader["EmailSent"], (bool)reader["SMSSent"]);
+                    return (
+                        reader["EmailSent"] != DBNull.Value ? (bool)reader["EmailSent"] : false,
+                        reader["WhatsAppSent"] != DBNull.Value ? (bool)reader["WhatsAppSent"] : false
+                    );
                 }
                 return (false, false);
             }

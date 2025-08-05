@@ -1330,6 +1330,51 @@ namespace ChatBot.Controllers
             }
         }
 
+        //private async Task SendPostSubmissionMessages(string userId, UserDetails userDetails, string jobTitle)
+        //{
+        //    try
+        //    {
+        //        var templates = _chatDbService.GetMessageTemplates();
+        //        var emailTemplate = templates.FirstOrDefault(t => t.MessageType == "Email" && t.IsDefault);
+        //        var whatsappTemplate = templates.FirstOrDefault(t => t.MessageType == "WhatsApp" && t.IsDefault);
+
+        //        using var conn = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+        //        conn.Open();
+        //        var cmd = new SqlCommand("SELECT EmailSent, SMSSent FROM Users WHERE UserId = @UserId", conn);
+        //        cmd.Parameters.AddWithValue("@UserId", userId);
+        //        using var reader = cmd.ExecuteReader();
+        //        bool emailSent = false, whatsappSent = false;
+        //        if (reader.Read())
+        //        {
+        //            emailSent = (bool)reader["EmailSent"];
+        //            whatsappSent = (bool)reader["SMSSent"];
+        //        }
+        //        reader.Close();
+
+        //        if (emailTemplate != null && !string.IsNullOrEmpty(userDetails?.Email) && !emailSent)
+        //        {
+        //            var body = emailTemplate.TemplateContent
+        //                .Replace("{Name}", userDetails.Name ?? "Candidate")
+        //                .Replace("{JobTitle}", jobTitle ?? "the position");
+        //            await _notificationService.SendEmailAsync(userDetails.Email, "Interview Submission Confirmation", body);
+        //            _chatDbService.UpdateUserMessageStatus(userId, true, whatsappSent);
+        //        }
+
+        //        if (whatsappTemplate != null && !string.IsNullOrEmpty(userDetails?.Phone) && !whatsappSent)
+        //        {
+        //            var body = whatsappTemplate.TemplateContent
+        //                .Replace("{Name}", userDetails.Name ?? "Candidate")
+        //                .Replace("{JobTitle}", jobTitle ?? "the position");
+        //            await _notificationService.SendWhatsAppAsync(userDetails.Phone, body);
+        //            _chatDbService.UpdateUserMessageStatus(userId, emailSent, true);
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "Error sending post-submission messages for UserId: {UserId}", userId);
+        //    }
+        //}
+
         private async Task SendPostSubmissionMessages(string userId, UserDetails userDetails, string jobTitle)
         {
             try
@@ -1340,14 +1385,14 @@ namespace ChatBot.Controllers
 
                 using var conn = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
                 conn.Open();
-                var cmd = new SqlCommand("SELECT EmailSent, SMSSent FROM Users WHERE UserId = @UserId", conn);
+                var cmd = new SqlCommand("SELECT EmailSent, WhatsAppSent FROM Users WHERE UserId = @UserId", conn);
                 cmd.Parameters.AddWithValue("@UserId", userId);
                 using var reader = cmd.ExecuteReader();
                 bool emailSent = false, whatsappSent = false;
                 if (reader.Read())
                 {
-                    emailSent = (bool)reader["EmailSent"];
-                    whatsappSent = (bool)reader["SMSSent"];
+                    emailSent = reader["EmailSent"] != DBNull.Value && (bool)reader["EmailSent"];
+                    whatsappSent = reader["WhatsAppSent"] != DBNull.Value && (bool)reader["WhatsAppSent"];
                 }
                 reader.Close();
 
@@ -1357,7 +1402,7 @@ namespace ChatBot.Controllers
                         .Replace("{Name}", userDetails.Name ?? "Candidate")
                         .Replace("{JobTitle}", jobTitle ?? "the position");
                     await _notificationService.SendEmailAsync(userDetails.Email, "Interview Submission Confirmation", body);
-                    _chatDbService.UpdateUserMessageStatus(userId, true, whatsappSent);
+                    emailSent = true;
                 }
 
                 if (whatsappTemplate != null && !string.IsNullOrEmpty(userDetails?.Phone) && !whatsappSent)
@@ -1366,8 +1411,10 @@ namespace ChatBot.Controllers
                         .Replace("{Name}", userDetails.Name ?? "Candidate")
                         .Replace("{JobTitle}", jobTitle ?? "the position");
                     await _notificationService.SendWhatsAppAsync(userDetails.Phone, body);
-                    _chatDbService.UpdateUserMessageStatus(userId, emailSent, true);
+                    whatsappSent = true;
                 }
+
+                _chatDbService.UpdateUserMessageStatus(userId, emailSent, whatsappSent);
             }
             catch (Exception ex)
             {

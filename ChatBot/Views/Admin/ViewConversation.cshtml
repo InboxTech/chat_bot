@@ -4,114 +4,175 @@
     ViewData["Title"] = "Conversation History";
 }
 
-<h2>Conversation History for User</h2>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
 
-@if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
-{
-    <div class="alert alert-danger">@ViewBag.ErrorMessage</div>
-}
+        .container {
+            max-width: 1200px;
+            margin-top: 20px;
+        }
 
-@if (Model.Any())
-{
-    <h4>User: @Model.First().Name (@Model.First().Email, @Model.First().Phone)</h4>
-    <div class="conversation-container">
-        @foreach (var conversation in Model)
+        .conversation-container {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .conversation-block {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            transition: transform 0.2s;
+        }
+
+            .conversation-block:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            }
+
+        .message-list {
+            margin-top: 10px;
+        }
+
+        .message-item {
+            margin-bottom: 10px;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .message-header {
+            font-size: 0.9em;
+            color: #6c757d;
+            margin-bottom: 5px;
+        }
+
+        .message-content {
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-bottom: 5px;
+        }
+
+        .user-message {
+            background-color: #e6f3ff;
+            border-left: 4px solid #007bff;
+        }
+
+        .bot-message {
+            background-color: #f1f1f1;
+            border-left: 4px solid #6c757d;
+        }
+
+        .alert {
+            border-radius: 5px;
+        }
+
+        h5 {
+            color: #007bff;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .user-details {
+            background-color: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .tab-switch-highlight {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .btn-back {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 class="mb-4 text-primary">Conversation History for User</h2>
+
+        <a href="@Url.Action("Index")" class="btn btn-secondary btn-back">Back to Dashboard</a>
+
+        @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
         {
-            <div class="conversation-block">
-                <h5>Session: @conversation.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss")</h5>
-                @{
-                    var messages = Newtonsoft.Json.JsonConvert.DeserializeObject<List<ChatMessage>>(conversation.ConversationText) ?? new List<ChatMessage>();
-                    // Sort messages by CreatedAt in ascending order
-                    messages = messages.OrderBy(m => m.CreatedAt).ToList();
-                }
-                @if (messages.Any())
+            <div class="alert alert-danger">@ViewBag.ErrorMessage</div>
+        }
+
+        @if (Model.Any())
+        {
+            <div class="user-details">
+                <h4>User: @Model.First().Name (@Model.First().Email, @Model.First().Phone)</h4>
+                <p><strong>Experience:</strong> @Model.First().Experience</p>
+                <p><strong>Employment Status:</strong> @Model.First().EmploymentStatus</p>
+                <p><strong>Reason:</strong> @Model.First().Reason</p>
+                <p><strong>Tab Switches:</strong> <span class="@(Model.First().TabSwitchCount > 0 ? "tab-switch-highlight" : "")">@Model.First().TabSwitchCount</span></p>
+            </div>
+            <div class="conversation-container">
+                @foreach (var conversation in Model)
                 {
-                    <div class="message-list">
-                        @foreach (var message in messages)
+                    <div class="conversation-block">
+                        <h5>Session: @conversation.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss")</h5>
+                        @{
+                            var messages = Newtonsoft.Json.JsonConvert.DeserializeObject<List<ChatMessage>>(conversation.ConversationText) ?? new List<ChatMessage>();
+                            messages = messages.OrderBy(m => m.CreatedAt).ToList();
+                        }
+                        @if (messages.Any())
                         {
-                            <div class="message-item">
-                                <div class="message-header">
-                                    <span class="message-time">@message.CreatedAt.ToString("HH:mm:ss")</span>
-                                </div>
-                                @if (!string.IsNullOrEmpty(message.UserMessage))
+                            <div class="message-list">
+                                @foreach (var message in messages)
                                 {
-                                    <div class="message-content user-message">
-                                        <strong>User:</strong> @message.UserMessage
-                                    </div>
-                                }
-                                @if (!string.IsNullOrEmpty(message.BotResponse))
-                                {
-                                    <div class="message-content bot-message">
-                                        <strong>Bot:</strong> @message.BotResponse
+                                    <div class="message-item">
+                                        <div class="message-header">
+                                            <span class="message-time">@message.CreatedAt.ToString("HH:mm:ss")</span>
+                                        </div>
+                                        @if (!string.IsNullOrEmpty(message.UserMessage))
+                                        {
+                                            <div class="message-content user-message">
+                                                <strong>User:</strong> @message.UserMessage
+                                            </div>
+                                        }
+                                        @if (!string.IsNullOrEmpty(message.BotResponse))
+                                        {
+                                            <div class="message-content bot-message">
+                                                <strong>Bot:</strong> @message.BotResponse
+                                            </div>
+                                        }
                                     </div>
                                 }
                             </div>
                         }
+                        else
+                        {
+                            <p class="text-muted">No messages in this session.</p>
+                        }
                     </div>
-                }
-                else
-                {
-                    <p>No messages in this session.</p>
                 }
             </div>
         }
+        else
+        {
+            <div class="alert alert-info">No conversation history available.</div>
+        }
     </div>
-}
-else
-{
-    <p>No conversation history available.</p>
-}
 
-<style>
-    .conversation-container {
-        margin-top: 20px;
-    }
-
-    .conversation-block {
-        margin-bottom: 20px;
-        padding: 15px;
-        border: 1px solid #ddd;
-        border-radius: 5px;
-        background-color: #f9f9f9;
-    }
-
-    .message-list {
-        margin-top: 10px;
-    }
-
-    .message-item {
-        margin-bottom: 10px;
-        padding: 10px;
-        border-bottom: 1px solid #eee;
-    }
-
-    .message-header {
-        font-size: 0.9em;
-        color: #666;
-        margin-bottom: 5px;
-    }
-
-    .message-content {
-        padding: 5px 10px;
-        border-radius: 5px;
-    }
-
-    .user-message {
-        background-color: #e6f3ff;
-        margin-bottom: 5px;
-    }
-
-    .bot-message {
-        background-color: #f0f0f0;
-    }
-
-    .alert {
-        padding: 15px;
-        margin-bottom: 20px;
-    }
-
-    h5 {
-        margin-bottom: 10px;
-        color: #333;
-    }
-</style>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+</body>
+</html>

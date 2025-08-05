@@ -4,173 +4,358 @@
     ViewData["Title"] = "Admin Dashboard";
 }
 
-<h2>Admin Dashboard - User Details</h2>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
 
-<a href="@Url.Action("ManageTemplates")" class="btn btn-secondary mb-3">Manage Message Templates</a>
+        .container {
+            max-width: 1400px;
+            margin-top: 20px;
+        }
 
-@if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
-{
-    <div class="alert alert-danger">@ViewBag.ErrorMessage</div>
-}
-@if (!string.IsNullOrEmpty(TempData["SuccessMessage"]?.ToString()))
-{
-    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
-}
-@if (!string.IsNullOrEmpty(TempData["ErrorMessage"]?.ToString()))
-{
-    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
-}
+        .table-container {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
 
-@if (Model.Any())
-{
-    <table class="table table-bordered table-striped">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Phone</th>
-                <th>Tab Switches</th>
-                <th>Experience</th>
-                <th>Employment Status</th>
-                <th>Reason</th>
-                <th>Created At</th>
-                <th>ID Proof</th>
-                <th>Interview Count</th>
-                <th>Interview Status</th>
-                <th>Email Sent</th>
-                <th>WhatsApp Sent</th>
-                <th>Interview Video</th>
-                <th>Company Queries</th>
-                <th>Conversation</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var user in Model)
-            {
-                <tr>
-                    <td>@user.Name</td>
-                    <td>@user.Email</td>
-                    <td>@user.Phone</td>
-                    <td class="@(user.TabSwitchCount > 0 ? "tab-switch-highlight" : "")">@user.TabSwitchCount</td>
-                    <td>@user.Experience</td>
-                    <td>@user.EmploymentStatus</td>
-                    <td>@user.Reason</td>
-                    <td>@(user.CreatedAt?.ToString("yyyy-MM-dd HH:mm:ss") ?? "N/A")</td>
-                    <td>
-                        @if (!string.IsNullOrEmpty(user.IDProofPath))
-                        {
-                            <a href="@Url.Action("ViewIDProof", "Chat", new { filePath = user.IDProofPath })" target="_blank">View ID</a>
-                        }
-                        else
-                        {
-                            <span>N/A</span>
-                        }
-                    </td>
-                    <td>@user.InterviewCount</td>
-                    <td>@user.InterviewStatus</td>
-                    <td>@(user.EmailSent ? "Yes" : "No")</td>
-                    <td>@(user.WhatsAppSent ? "Yes" : "No")</td>
-                    <td>
-                        @if (!string.IsNullOrEmpty(user.InterviewVideoPath))
-                        {
-                            <a href="@Url.Action("ViewInterviewVideo", "Chat", new { filePath = user.InterviewVideoPath })" target="_blank">View Video</a>
-                        }
-                        else
-                        {
-                            <span>N/A</span>
-                        }
-                    </td>
-                    <td>
-                        @if (user.CompanyQueries.Any())
-                        {
-                            <ul>
-                                @foreach (var query in user.CompanyQueries)
-                                {
-                                    <li>@query</li>
-                                }
-                            </ul>
-                        }
-                        else
-                        {
-                            <span>No queries</span>
-                        }
-                    </td>
-                    <td>
-                        <a href="@Url.Action("ViewConversation", new { userId = user.UserId })">View Conversation</a>
-                    </td>
-                    <td>
-                        @{
-                            var availableTemplates = (ViewData["Templates"] as List<MessageTemplate> ?? new List<MessageTemplate>())
-                            .Where(t => (t.MessageType == "Email" && !string.IsNullOrEmpty(user.Email)) ||
-                            (t.MessageType == "WhatsApp" && !string.IsNullOrEmpty(user.Phone) && !user.WhatsAppSent))
-                            .ToList();
-                        }
-                        @if (user.InterviewStatus == "Submitted" && availableTemplates.Any())
-                        {
-                            <form asp-action="SendPassMessage" method="post" class="d-inline">
-                                <input type="hidden" name="userId" value="@user.UserId" />
-                                <select name="templateName" class="form-control d-inline-block" style="width: auto;">
-                                    @foreach (var template in availableTemplates)
-                                    {
-                                        <option value="@template.TemplateName">@template.TemplateName (@template.MessageType)</option>
-                                    }
-                                </select>
-                                <button type="submit" class="btn btn-sm btn-success">Send Message</button>
-                            </form>
-                        }
-                        else if (user.InterviewStatus == "Submitted")
-                        {
-                            <span>No contact info or message already sent.</span>
-                        }
-                    </td>
-                </tr>
+        .table {
+            margin-bottom: 0;
+        }
+
+            .table th {
+                background-color: #007bff;
+                color: white;
+                font-weight: 600;
             }
-        </tbody>
-    </table>
-}
-else
-{
-    <p>No user details available.</p>
-}
 
-<style>
-    .table {
-        width: 100%;
-        margin-top: 20px;
-    }
+            .table td {
+                vertical-align: middle;
+            }
 
-        .table th, .table td {
-            padding: 10px;
-            text-align: left;
-            vertical-align: middle;
+        .alert {
+            border-radius: 5px;
         }
 
-        .table th {
-            background-color: #f4f4f4;
+        .filter-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
         }
 
-    .alert {
-        padding: 15px;
-        margin-bottom: 20px;
-    }
+            .filter-container select, .filter-container input {
+                max-width: 200px;
+            }
 
-    ul {
-        margin: 0;
-        padding-left: 20px;
-    }
+        .pagination-container {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+        }
 
-    .tab-switch-highlight {
-        color: #d9534f;
-        font-weight: bold;
-    }
+        .btn-primary, .btn-secondary, .btn-success {
+            transition: background-color 0.3s;
+        }
 
-    .btn {
-        margin-right: 5px;
-    }
+            .btn-primary:hover, .btn-secondary:hover, .btn-success:hover {
+                opacity: 0.9;
+            }
 
-    .form-control.d-inline-block {
-        display: inline-block;
-        margin-right: 5px;
-    }
-</style>
+        .form-control.d-inline-block {
+            display: inline-block;
+            margin-right: 10px;
+            width: auto;
+        }
+
+        .action-cell {
+            min-width: 250px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 class="mb-4 text-primary">Admin Dashboard - User Details</h2>
+
+        <a href="@Url.Action("ManageTemplates")" class="btn btn-secondary mb-3">Manage Message Templates</a>
+
+        @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
+        {
+            <div class="alert alert-danger">@ViewBag.ErrorMessage</div>
+        }
+        @if (!string.IsNullOrEmpty(TempData["SuccessMessage"]?.ToString()))
+        {
+            <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+        }
+        @if (!string.IsNullOrEmpty(TempData["ErrorMessage"]?.ToString()))
+        {
+            <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+        }
+
+        @if (Model.Any())
+        {
+            <div class="table-container">
+                <div class="filter-container">
+                    <input type="text" id="searchInput" class="form-control" placeholder="Search by Name, Email, or Phone">
+                    <input type="text" id="dateSearch" class="form-control" placeholder="Search by Date (YYYY-MM-DD)">
+                    <select id="statusFilter" class="form-control">
+                        <option value="">All Statuses</option>
+                        <option value="Submitted">Submitted</option>
+                        <option value="Completed but not submitted">Completed but not submitted</option>
+                        <option value="In progress">In progress</option>
+                        <option value="Not started">Not started</option>
+                    </select>
+                    <select id="emailSentFilter" class="form-control">
+                        <option value="">All Email Status</option>
+                        <option value="Yes">Email Sent</option>
+                        <option value="No">Email Not Sent</option>
+                    </select>
+                    <select id="whatsappSentFilter" class="form-control">
+                        <option value="">All WhatsApp Status</option>
+                        <option value="Yes">WhatsApp Sent</option>
+                        <option value="No">WhatsApp Not Sent</option>
+                    </select>
+                    <select id="dateSort" class="form-control">
+                        <option value="">Sort by Date</option>
+                        <option value="asc">Date Ascending</option>
+                        <option value="desc">Date Descending</option>
+                    </select>
+                </div>
+                <table class="table table-bordered table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Created At</th>
+                            <th>ID Proof</th>
+                            <th>Interview Count</th>
+                            <th>Interview Status</th>
+                            <th>Email Sent</th>
+                            <th>WhatsApp Sent</th>
+                            <th>Interview Video</th>
+                            <th>Conversation</th>
+                            <th class="action-cell">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="userTableBody">
+                        @foreach (var user in Model)
+                        {
+                            <tr class="user-row"
+                                data-name="@user.Name.ToLower()"
+                                data-email="@user.Email.ToLower()"
+                                data-phone="@user.Phone.ToLower()"
+                                data-date="@(user.CreatedAt?.ToString("yyyy-MM-dd HH:mm:ss") ?? "")"
+                                data-status="@user.InterviewStatus"
+                                data-emailsent="@(user.EmailSent ? "Yes" : "No")"
+                                data-whatsappsent="@(user.WhatsAppSent ? "Yes" : "No")">
+                                <td>@user.Name</td>
+                                <td>@user.Email</td>
+                                <td>@user.Phone</td>
+                                <td>@(user.CreatedAt?.ToString("yyyy-MM-dd HH:mm:ss") ?? "N/A")</td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(user.IDProofPath))
+                                    {
+                                        <a href="@Url.Action("ViewIDProof", "Chat", new { filePath = user.IDProofPath })" target="_blank" class="btn btn-sm btn-outline-primary">View ID</a>
+                                    }
+                                    else
+                                    {
+                                        <span>N/A</span>
+                                    }
+                                </td>
+                                <td>@user.InterviewCount</td>
+                                <td>@user.InterviewStatus</td>
+                                <td>@(user.EmailSent ? "Yes" : "No")</td>
+                                <td>@(user.WhatsAppSent ? "Yes" : "No")</td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(user.InterviewVideoPath))
+                                    {
+                                        <a href="@Url.Action("ViewInterviewVideo", "Chat", new { filePath = user.InterviewVideoPath })" target="_blank" class="btn btn-sm btn-outline-primary">View Video</a>
+                                    }
+                                    else
+                                    {
+                                        <span>N/A</span>
+                                    }
+                                </td>
+                                <td>
+                                    <a href="@Url.Action("ViewConversation", new { userId = user.UserId })" class="btn btn-sm btn-outline-info">View Conversation</a>
+                                </td>
+                                <td>
+                                    @{
+                                        var availableTemplates = (ViewData["Templates"] as List<MessageTemplate> ?? new List<MessageTemplate>())
+                                        .Where(t => (t.MessageType == "Email" && !string.IsNullOrEmpty(user.Email)) ||
+                                        (t.MessageType == "WhatsApp" && !string.IsNullOrEmpty(user.Phone) && !user.WhatsAppSent))
+                                        .ToList();
+                                    }
+                                    @if (user.InterviewStatus == "Submitted" && availableTemplates.Any())
+                                    {
+                                        <form asp-action="SendPassMessage" method="post" class="d-inline">
+                                            <input type="hidden" name="userId" value="@user.UserId" />
+                                            <select name="templateName" class="form-control d-inline-block">
+                                                @foreach (var template in availableTemplates)
+                                                {
+                                                    <option value="@template.TemplateName">@template.TemplateName (@template.MessageType)</option>
+                                                }
+                                            </select>
+                                            <button type="submit" class="btn btn-sm btn-success">Send Message</button>
+                                        </form>
+                                    }
+                                    else if (user.InterviewStatus == "Submitted")
+                                    {
+                                        <span class="text-muted">No contact info or message already sent.</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                <div class="pagination-container">
+                    <nav>
+                        <ul class="pagination" id="pagination"></ul>
+                    </nav>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-info">No user details available.</div>
+        }
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script>
+        $(document).ready(function () {
+            const rowsPerPage = 10;
+            let currentPage = 1;
+            const $rows = $('#userTableBody tr');
+            const totalRows = $rows.length;
+            const totalPages = Math.ceil(totalRows / rowsPerPage);
+
+            function updateTable() {
+                const searchText = $('#searchInput').val().toLowerCase();
+                const dateSearch = $('#dateSearch').val().toLowerCase();
+                const statusFilter = $('#statusFilter').val();
+                const emailSentFilter = $('#emailSentFilter').val();
+                const whatsappSentFilter = $('#whatsappSentFilter').val();
+                const dateSort = $('#dateSort').val();
+
+                // Collect and sort rows
+                let $filteredRows = $rows.filter(function () {
+                    const $row = $(this);
+                    const name = $row.data('name');
+                    const email = $row.data('email');
+                    const phone = $row.data('phone');
+                    const date = $row.data('date').toLowerCase();
+                    const status = $row.data('status');
+                    const emailSent = $row.data('emailsent');
+                    const whatsappSent = $row.data('whatsappsent');
+
+                    const matchesSearch = !searchText ||
+                        name.includes(searchText) ||
+                        email.includes(searchText) ||
+                        phone.includes(searchText);
+                    const matchesDate = !dateSearch || date.includes(dateSearch);
+                    const matchesStatus = !statusFilter || status === statusFilter;
+                    const matchesEmailSent = !emailSentFilter || emailSent === emailSentFilter;
+                    const matchesWhatsappSent = !whatsappSentFilter || whatsappSent === whatsappSentFilter;
+
+                    return matchesSearch && matchesDate && matchesStatus && matchesEmailSent && matchesWhatsappSent;
+                });
+
+                // Sort rows by date if a sort option is selected
+                if (dateSort) {
+                    $filteredRows = $filteredRows.sort(function (a, b) {
+                        const dateA = $(a).data('date') || '';
+                        const dateB = $(b).data('date') || '';
+                        if (dateA === '' && dateB === '') return 0;
+                        if (dateA === '') return dateSort === 'asc' ? 1 : -1;
+                        if (dateB === '') return dateSort === 'asc' ? -1 : 1;
+                        return dateSort === 'asc'
+                            ? dateA.localeCompare(dateB)
+                            : dateB.localeCompare(dateA);
+                    });
+                }
+
+                // Update table body with sorted rows
+                $('#userTableBody').empty().append($filteredRows);
+
+                // Update visibility for pagination
+                const visibleRowsCount = $filteredRows.length;
+                const totalVisiblePages = Math.ceil(visibleRowsCount / rowsPerPage);
+
+                $filteredRows.each(function (index) {
+                    if (index >= (currentPage - 1) * rowsPerPage && index < currentPage * rowsPerPage) {
+                        $(this).show();
+                    } else {
+                        $(this).hide();
+                    }
+                });
+
+                updatePagination(totalVisiblePages);
+            }
+
+            function updatePagination(totalPages) {
+                $('#pagination').empty();
+                if (totalPages <= 1) return;
+
+                if (currentPage > totalPages) {
+                    currentPage = totalPages;
+                }
+
+                const $prev = $('<li class="page-item"><a class="page-link" href="#">Previous</a></li>');
+                if (currentPage === 1) $prev.addClass('disabled');
+                $prev.click(function (e) {
+                    e.preventDefault();
+                    if (currentPage > 1) {
+                        currentPage--;
+                        updateTable();
+                    }
+                });
+
+                $('#pagination').append($prev);
+
+                for (let i = 1; i <= totalPages; i++) {
+                    const $page = $(`<li class="page-item"><a class="page-link" href="#">${i}</a></li>`);
+                    if (i === currentPage) $page.addClass('active');
+                    $page.click(function (e) {
+                        e.preventDefault();
+                        currentPage = i;
+                        updateTable();
+                    });
+                    $('#pagination').append($page);
+                }
+
+                const $next = $('<li class="page-item"><a class="page-link" href="#">Next</a></li>');
+                if (currentPage === totalPages) $next.addClass('disabled');
+                $next.click(function (e) {
+                    e.preventDefault();
+                    if (currentPage < totalPages) {
+                        currentPage++;
+                        updateTable();
+                    }
+                });
+
+                $('#pagination').append($next);
+            }
+
+            $('#searchInput, #dateSearch, #statusFilter, #emailSentFilter, #whatsappSentFilter, #dateSort').on('input change', function () {
+                currentPage = 1;
+                updateTable();
+            });
+
+            updateTable();
+        });
+    </script>
+</body>
+</html>
