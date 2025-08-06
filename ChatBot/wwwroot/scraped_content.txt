@@ -6,13 +6,9 @@
 - SAP Consultant (Treasury & Fico)
 
 🔸 SERVICES:
-- Over 10 years of experience in helping clients finding comprehensive solutions.
-- Read more
-                  
-                  
-                    Contact us
-- Connect with top consultants hand-picked by Inbox Infotech for consulting and development.
 - We look forward to assisting you in taking your business to new heights.
+- Over 10 years of experience in helping clients finding comprehensive solutions.
+- Connect with top consultants hand-picked by Inbox Infotech for consulting and development.
 - Welcome to the 
                         
                         
@@ -28,30 +24,6 @@
 - Recruitment &amp; Staffing
 - Infrastructure Management
 - Data Centre Solutions
-- Software Development
-                                            Promising to offer agile, innovative, and competitive services for custom application and software development, Inbox Infotech seeks to be your one-stop solution for software development. Offering next-level business software development services, we aim to offer both backend and front software development services to cater to distinct software project needs and requirements. Contact us for any requirement, from start-ups to large-scale organizations, we offer comprehensive business software development solutions to all.
-                                                                                            Learn More
-- Mobile Applications
-                                            Take your mobile application to the next level by exploring our customized mobile app solutions. With Inbox Infotech, experience the power of working with an extremely proficient and knowledgeable team of application developers. Offering integrated app development solutions for both Android and iOS platforms, we are where your dream meets reality.
-                                                                                            Learn More
-- Recruitment &amp; Staffing
-                                            Inbox Infotech provides end-to-end recruitment and staffing solutions, helping businesses find the right talent quickly and efficiently. Our services include permanent hiring, contract staffing, and workforce management tailored to diverse industry needs.
-                                                                                            Learn More
-- Infrastructure Management
-                                            Inbox Infotech helps enterprises accelerate their digital transformation with our comprehensive suite of offerings that covers the entire IT infrastructure stack. With our platform-enabled solutions powered by AI and Automation, we help enterprises accelerate their journey to a digital future. Our focus is on helping organizations develop a future-ready infrastructure aligned with their core business needs.&nbsp;
-                                                                                            Learn More
-- Cloud Services
-                                            Let a single provider seamlessly and securely connect to diverse cloud solutions. Our industry-leading partnerships let you grow your business, its efficiency, and productivity. The services are catered to helping build an agile IT ecosystem using hybrid multi-cloud environments, networks, and security that is required globally. The world-class solutions enable to expand across the globe and improve efficiency and productivity while delivering seamless customer experience.
-                                                                                            Learn More
-- IOT
-                                            IOT results in increased business efficiency and smart processes; however, the larger picture here is all about the usage of time saved and the insights gained for crafting craft extraordinary experiences – the ones that not only are personalized but also distinctive enough to keep customers coming back for more. Our vision for automation is all about enabling these experiences through a digital workforce and smarter processes while unleashing a wave of innovation across your enterprise – all by empowering humans to focus more on meaningful, higher-order work. The result? An enterprise that not only innovates more on the inside but also delivers impressive experiences on the outside.
-                                                                                            Learn More
-- Cyber Security
-                                            Computer security, Cyber security, or information technology security (IT security) is the protection of computer systems and networks from information disclosure, theft of, or damage to their hardware, software, or electronic data, as well as from the disruption or misdirection of the services they provide. Inbox Infotech will prevent you from Denial-of-service attacks, Direct-access attacks, Backdoor, Eavesdropping, Phishing, Side-channel attacks, Multi-vector, polymorphic attacks, Tampering, and Malware.
-                                                                                            Learn More
-- Data Centre Solutions
-                                            Meet the ever-changing demands of the dynamic Indian marketplace with our data center solutions. Offering award-winning state-of-the-art facilities, we offer a suite of collocation services that are aimed at offering cost-effective, secured, and scalable data center solutions. We have been the pioneer of data center innovation and have been scaling faster than any other data center solution provider, serving more than a thousand customers on board.
-                                                                                            Learn More
 - Take the right step, do the big things. 
                     
                         
@@ -236,16 +208,6 @@
             
               
                    Dubai:    INBOX INFOTECH FZ-LLC, RAKEZ - Ras al Khaimah, Dubai
-- Contact Us 
-          
-            
-              
-                 info@Inbox-infotech.com
-              
-            
-            
-              
-                 hr@Inbox-infotech.com
 - 👋 Hi there, How can we help?
 
 
@@ -369,12 +331,6 @@ We are proud to be the holders of eminent industry awards that reflect our past 
                 
                   Home
                   Services
-- Awards winner team
-              We are proud to be the holders of eminent industry awards that reflect our past contribution and excellence throughout the field.
-- Chat with team
-              Have a question? Chat online with an expert. Start chatting  -->
-- Call a specialist
-              Our 24/7 support team is ready for you at  info@Inbox-infotech.com
 - If you have any query related development we are available 24/7
 - We transform brands, grow businesses, and tell brand and product stories in a most creative way.
 - We cover a large range of creative platforms and digital projects with one purpose: to create experiences.
@@ -475,9 +431,6 @@ We are proud to be the holders of eminent industry awards that reflect our past 
                                     EVOMA CO – working andhotel,Old madras road,KR
                                         Puram,Bangalore
                                         560049 India
-- Contact Details
-                                     info@Inbox-infotech.com
-- hr@Inbox-infotech.com
 - -->
                              -->
 📞 230499585334
@@ -485,6 +438,7 @@ We are proud to be the holders of eminent industry awards that reflect our past 
 📞 298007754236604
 📞 91 9998418499
 ✉️ info@Inbox-infotech.com
+✉️ hr@Inbox-infotech.com
 - Address: 615- Supremus Vihav
                                         Building, Vadodara,
                                         Gujarat, India

@@ -1,5 +1,6 @@
 ﻿using ChatBot.Models;
 using ChatBot.Services;
+using ClosedXML.Excel;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
@@ -392,6 +393,188 @@ namespace ChatBot.Controllers
                 ViewBag.ErrorMessage = "Error retrieving conversation history.";
             }
             return View("ViewConversation", conversations);
+        }
+
+        [HttpPost]
+        public IActionResult ExportUsers(string dateFrom, string dateTo, string searchText, string statusFilter, string emailSentFilter, string whatsappSentFilter)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(_connectionString))
+                {
+                    _logger.LogError("Connection string 'DefaultConnection' is missing or empty.");
+                    return BadRequest("Database connection is not configured.");
+                }
+
+                var userDetailsList = new List<UserAdminViewModel>();
+                using var conn = new SqlConnection(_connectionString);
+                conn.Open();
+                _logger.LogInformation("Successfully connected to the database for export.");
+
+                var query = @"
+                    SELECT 
+                        u.UserId, 
+                        u.Name, 
+                        u.Phone, 
+                        u.Email, 
+                        u.CreatedAt, 
+                        u.IDProofPath, 
+                        u.IDProofType, 
+                        u.EmailSent, 
+                        u.WhatsAppSent, 
+                        i.VideoPath,
+                        ISNULL((
+                            SELECT COUNT(*) 
+                            FROM Interactions 
+                            WHERE UserId = u.UserId 
+                            AND IsComplete = 1
+                            AND Questions IS NOT NULL
+                        ), 0) AS InterviewCount,
+                        ISNULL((
+                            SELECT TOP 1 CASE 
+                                WHEN IsComplete = 1 AND IsSubmitted = 1 THEN 'Submitted'
+                                WHEN IsComplete = 1 AND IsSubmitted = 0 THEN 'Completed but not submitted'
+                                WHEN IsComplete = 0 THEN 'In progress'
+                                ELSE 'Not started'
+                            END 
+                            FROM Interactions 
+                            WHERE UserId = u.UserId 
+                            AND Questions IS NOT NULL
+                            ORDER BY CreatedAt DESC
+                        ), 'Not started') AS InterviewStatus
+                    FROM Users u
+                    LEFT JOIN Interactions i ON u.UserId = i.UserId 
+                        AND i.InteractionId = (
+                            SELECT MAX(InteractionId) 
+                            FROM Interactions 
+                            WHERE UserId = u.UserId 
+                            AND IsComplete = 1
+                            AND Questions IS NOT NULL
+                        )
+                    WHERE 1=1";
+
+                var parameters = new List<SqlParameter>();
+                if (!string.IsNullOrEmpty(dateFrom) && DateTime.TryParse(dateFrom, out var fromDate))
+                {
+                    query += " AND u.CreatedAt >= @DateFrom";
+                    parameters.Add(new SqlParameter("@DateFrom", fromDate));
+                }
+                if (!string.IsNullOrEmpty(dateTo) && DateTime.TryParse(dateTo, out var toDate))
+                {
+                    query += " AND u.CreatedAt <= @DateTo";
+                    parameters.Add(new SqlParameter("@DateTo", toDate));
+                }
+                if (!string.IsNullOrEmpty(searchText))
+                {
+                    query += " AND (u.Name LIKE @SearchText OR u.Email LIKE @SearchText OR u.Phone LIKE @SearchText)";
+                    parameters.Add(new SqlParameter("@SearchText", $"%{searchText}%"));
+                }
+                if (!string.IsNullOrEmpty(statusFilter))
+                {
+                    query += " AND EXISTS (SELECT 1 FROM Interactions i2 WHERE i2.UserId = u.UserId AND Questions IS NOT NULL AND " +
+                             "(CASE WHEN i2.IsComplete = 1 AND i2.IsSubmitted = 1 THEN 'Submitted' " +
+                             "WHEN i2.IsComplete = 1 AND i2.IsSubmitted = 0 THEN 'Completed but not submitted' " +
+                             "WHEN i2.IsComplete = 0 THEN 'In progress' ELSE 'Not started' END) = @StatusFilter)";
+                    parameters.Add(new SqlParameter("@StatusFilter", statusFilter));
+                }
+                if (!string.IsNullOrEmpty(emailSentFilter))
+                {
+                    query += " AND u.EmailSent = @EmailSent";
+                    parameters.Add(new SqlParameter("@EmailSent", emailSentFilter == "Yes"));
+                }
+                if (!string.IsNullOrEmpty(whatsappSentFilter))
+                {
+                    query += " AND u.WhatsAppSent = @WhatsAppSent";
+                    parameters.Add(new SqlParameter("@WhatsAppSent", whatsappSentFilter == "Yes"));
+                }
+
+                var cmd = new SqlCommand(query, conn);
+                cmd.Parameters.AddRange(parameters.ToArray());
+
+                using var reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    var user = new UserAdminViewModel
+                    {
+                        UserId = reader["UserId"].ToString(),
+                        Name = reader["Name"] != DBNull.Value ? reader["Name"].ToString() : string.Empty,
+                        Phone = reader["Phone"] != DBNull.Value ? reader["Phone"].ToString() : string.Empty,
+                        Email = reader["Email"] != DBNull.Value ? reader["Email"].ToString() : string.Empty,
+                        CreatedAt = reader["CreatedAt"] != DBNull.Value ? (DateTime?)reader["CreatedAt"] : null,
+                        IDProofPath = reader["IDProofPath"] != DBNull.Value ? reader["IDProofPath"].ToString() : string.Empty,
+                        IDProofType = reader["IDProofType"] != DBNull.Value ? reader["IDProofType"].ToString() : string.Empty,
+                        InterviewVideoPath = reader["VideoPath"] != DBNull.Value ? reader["VideoPath"].ToString() : string.Empty,
+                        InterviewCount = reader["InterviewCount"] != DBNull.Value ? (int)reader["InterviewCount"] : 0,
+                        InterviewStatus = reader["InterviewStatus"] != DBNull.Value ? reader["InterviewStatus"].ToString() : "Not started",
+                        EmailSent = reader["EmailSent"] != DBNull.Value ? (bool)reader["EmailSent"] : false,
+                        WhatsAppSent = reader["WhatsAppSent"] != DBNull.Value ? (bool)reader["WhatsAppSent"] : false
+                    };
+                    userDetailsList.Add(user);
+                }
+                reader.Close();
+
+                // Generate Excel file using ClosedXML
+                using var workbook = new XLWorkbook();
+                var worksheet = workbook.Worksheets.Add("Users");
+
+                // Add headers
+                worksheet.Cell(1, 1).Value = "User ID";
+                worksheet.Cell(1, 2).Value = "Name";
+                worksheet.Cell(1, 3).Value = "Email";
+                worksheet.Cell(1, 4).Value = "Phone";
+                worksheet.Cell(1, 5).Value = "Created At";
+                worksheet.Cell(1, 6).Value = "ID Proof Path";
+                worksheet.Cell(1, 7).Value = "ID Proof Type";
+                worksheet.Cell(1, 8).Value = "Interview Video Path";
+                worksheet.Cell(1, 9).Value = "Interview Count";
+                worksheet.Cell(1, 10).Value = "Interview Status";
+                worksheet.Cell(1, 11).Value = "Email Sent";
+                worksheet.Cell(1, 12).Value = "WhatsApp Sent";
+
+                // Add data
+                for (int i = 0; i < userDetailsList.Count; i++)
+                {
+                    var user = userDetailsList[i];
+                    worksheet.Cell(i + 2, 1).Value = user.UserId;
+                    worksheet.Cell(i + 2, 2).Value = user.Name;
+                    worksheet.Cell(i + 2, 3).Value = user.Email;
+                    worksheet.Cell(i + 2, 4).Value = user.Phone;
+                    worksheet.Cell(i + 2, 5).Value = user.CreatedAt?.ToString("yyyy-MM-dd HH:mm:ss") ?? "N/A";
+                    worksheet.Cell(i + 2, 6).Value = user.IDProofPath;
+                    worksheet.Cell(i + 2, 7).Value = user.IDProofType;
+                    worksheet.Cell(i + 2, 8).Value = user.InterviewVideoPath;
+                    worksheet.Cell(i + 2, 9).Value = user.InterviewCount;
+                    worksheet.Cell(i + 2, 10).Value = user.InterviewStatus;
+                    worksheet.Cell(i + 2, 11).Value = user.EmailSent ? "Yes" : "No";
+                    worksheet.Cell(i + 2, 12).Value = user.WhatsAppSent ? "Yes" : "No";
+                }
+
+                // Auto-fit columns
+                worksheet.Columns().AdjustToContents();
+
+                // Generate dynamic filename
+                var filenameParts = new List<string> { "Users" };
+                if (!string.IsNullOrEmpty(dateFrom)) filenameParts.Add($"From_{dateFrom.Replace("-", "")}");
+                if (!string.IsNullOrEmpty(dateTo)) filenameParts.Add($"To_{dateTo.Replace("-", "")}");
+                if (!string.IsNullOrEmpty(statusFilter)) filenameParts.Add(statusFilter.Replace(" ", "_"));
+                if (!string.IsNullOrEmpty(emailSentFilter)) filenameParts.Add($"Email_{emailSentFilter}");
+                if (!string.IsNullOrEmpty(whatsappSentFilter)) filenameParts.Add($"WhatsApp_{whatsappSentFilter}");
+                if (!string.IsNullOrEmpty(searchText)) filenameParts.Add("Filtered");
+                var filename = $"{string.Join("_", filenameParts)}_{DateTime.Now:yyyyMMddHHmmss}.xlsx";
+
+                // Save to stream
+                using var stream = new MemoryStream();
+                workbook.SaveAs(stream);
+                stream.Position = 0;
+
+                return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", filename);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error exporting user data to Excel");
+                TempData["ErrorMessage"] = "Error exporting user data. Please try again.";
+                return RedirectToAction("Index");
+            }
         }
     }
 
