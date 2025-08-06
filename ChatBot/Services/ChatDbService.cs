@@ -41,16 +41,17 @@ namespace ChatBot.Services
                         UPDATE Users
                         SET Name = @Name, Phone = @Phone, Email = @Email, Experience = @Experience, 
                             EmploymentStatus = @EmploymentStatus, Reason = @Reason, CreatedAt = @CreatedAt, 
-                            IDProofPath = @IDProofPath, IDProofType = @IDProofType
+                            IDProofPath = @IDProofPath, IDProofType = @IDProofType, 
+                            ResumePath = @ResumePath, ResumeType = @ResumeType
                         WHERE UserId = @UserId", conn);
                 }
                 else
                 {
                     cmd = new SqlCommand(@"
                         INSERT INTO Users (UserId, Name, Phone, Email, Experience, EmploymentStatus, Reason, 
-                            CreatedAt, IDProofPath, IDProofType)
+                            CreatedAt, IDProofPath, IDProofType, ResumePath, ResumeType)
                         VALUES (@UserId, @Name, @Phone, @Email, @Experience, @EmploymentStatus, @Reason, 
-                            @CreatedAt, @IDProofPath, @IDProofType)", conn);
+                            @CreatedAt, @IDProofPath, @IDProofType, @ResumePath, @ResumeType)", conn);
                 }
 
                 cmd.Parameters.AddWithValue("@UserId", user.UserId ?? (object)DBNull.Value);
@@ -63,6 +64,8 @@ namespace ChatBot.Services
                 cmd.Parameters.AddWithValue("@CreatedAt", user.CreatedAt == default ? DateTime.Now : user.CreatedAt);
                 cmd.Parameters.AddWithValue("@IDProofPath", user.IDProofPath ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@IDProofType", user.IDProofType ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@ResumePath", user.ResumePath ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@ResumeType", user.ResumeType ?? (object)DBNull.Value);
 
                 cmd.ExecuteNonQuery();
             }
